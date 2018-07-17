@@ -19,7 +19,7 @@ class ExtractStep(PipelineStep):
         class_name = params["class_name"]
 
         params["%s_yodp_df" % class_name] = pd.read_sql_query(
-            "SELECT * FROM %s_yodp WHERE year = 2003 AND LENGTH(%s_id) = 8 LIMIT 1000" % (
+            "SELECT * FROM %s_yodp WHERE year = 2016 AND LENGTH(%s_id) = 8 LIMIT 1000" % (
                 class_name, class_name
             ), self.connector
         )
