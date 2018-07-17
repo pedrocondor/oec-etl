@@ -11,23 +11,28 @@ from bamboo_lib.connectors.models import Connector
 
 class ExtractStep(PipelineStep):
     def run_step(self, df, params):
-        params["hs92_df"] = pd.read_sql_query(
-            "SELECT * FROM attr_hs92", self.connector
+        class_name = params["class_name"]
+
+        params["%s_df" % class_name] = pd.read_sql_query(
+            "SELECT * FROM attr_%s" % class_name, self.connector
         )
-        params["hs92_name_df"] = pd.read_sql_query(
-            "SELECT * FROM attr_hs92_name", self.connector
+        params["%s_name_df" % class_name] = pd.read_sql_query(
+            "SELECT * FROM attr_%s_name" % class_name, self.connector
         )
+
         return df
 
 
 class TransformStep(PipelineStep):
     def run_step(self, df, params):
+        class_name = params["class_name"]
+
         # Select only rows with full id
-        mask = params["hs92_df"].id.str.len() == 8
-        df = params["hs92_df"][mask].copy()
+        mask = params["%s_df" % class_name].id.str.len() == 8
+        df = params["%s_df" % class_name][mask].copy()
 
         # Create the new columns for each language
-        for language in params["hs92_name_df"]["lang"].unique():
+        for language in params["%s_name_df" % class_name]["lang"].unique():
             for depth in ["chapter", "hs2", "hs4", "hs6"]:
                 df["%s" % depth] = None
                 df["%s_%s_name" % (depth, language)] = None
@@ -38,12 +43,12 @@ class TransformStep(PipelineStep):
                 df["%s_%s_article" % (depth, language)] = None
 
         # Populate those new columns with the appropriate language data
-        for index, row in params["hs92_name_df"].iterrows():
-            depth = self.get_depth(row["hs92_id"])
+        for index, row in params["%s_name_df" % class_name].iterrows():
+            depth = self.get_depth(row["%s_id" % class_name])
             language = row["lang"]
-            match = df["id"].str.startswith(row["hs92_id"])
+            match = df["id"].str.startswith(row["%s_id" % class_name])
 
-            df.loc[match, "%s" % depth] = row["hs92_id"]
+            df.loc[match, "%s" % depth] = row["%s_id" % class_name]
             df.loc[match, "%s_%s_name" % (depth, language)] = row["name"]
             df.loc[match, "%s_%s_keywords" % (depth, language)] = row["keywords"]
             df.loc[match, "%s_%s_desc" % (depth, language)] = row["desc"]
@@ -51,17 +56,15 @@ class TransformStep(PipelineStep):
             df.loc[match, "%s_%s_plural" % (depth, language)] = row["plural"]
             df.loc[match, "%s_%s_article" % (depth, language)] = row["article"]
 
-        # This final dataframe ends up having 444 columns with all of the
-        # language columns added
         return df
 
     @staticmethod
-    def get_depth(hs92_id):
-        if len(hs92_id) == 2:
+    def get_depth(hs_id):
+        if len(hs_id) == 2:
             return "chapter"
-        elif len(hs92_id) == 4:
+        elif len(hs_id) == 4:
             return "hs2"
-        elif len(hs92_id) == 6:
+        elif len(hs_id) == 6:
             return "hs4"
         return "hs6"
 
@@ -81,7 +84,7 @@ def start_pipeline(params):
     extract_step = ExtractStep(connector=conn)
     transform_step = TransformStep()
     load_step = LoadStep(
-        "hs%s" % params["year"], monetdb_oec_conn, index=True, schema="oec"
+        params["class_name"], monetdb_oec_conn, index=True, schema="oec"
     )
 
     logger.info("* OEC pipeline starting...")
@@ -95,4 +98,4 @@ def start_pipeline(params):
 
 if __name__ == "__main__":
     for year in ["92", "96", "02", "07"]:
-        start_pipeline({"year": year})
+        start_pipeline({"year": year, "class_name": "hs%s" % year})
