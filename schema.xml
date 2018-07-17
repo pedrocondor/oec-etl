@@ -117,6 +117,16 @@
         </Hierarchy>
     </Dimension>
 
+    <Dimension name="HS96">
+    </Dimension>
+
+    <Dimension name="HS02">
+    </Dimension>
+
+    <Dimension name="HS07">
+    </Dimension>
+
+
     <Cube name="attr_yo">
         <Table name="attr_yo" schema="public" />
 
@@ -143,7 +153,8 @@
         <Measure name="gini" column="gini" aggregator="sum" />
         <Measure name="xgini" column="xgini" aggregator="sum" />
     </Cube>
-    
+
+
     <Cube name="hs92_yearly_data">
         <Table name="hs92_yearly_data" schema="public" />
 
@@ -256,5 +267,14 @@
                 ]]>
             </Formula>
         </CalculatedMember>
+    </Cube>
+
+    <Cube name="hs96_yearly_data">
+    </Cube>
+
+    <Cube name="hs02_yearly_data">
+    </Cube>
+
+    <Cube name="hs07_yearly_data">
     </Cube>
 </Schema>
