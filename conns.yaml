@@ -1,0 +1,7 @@
+monetdb-oec:
+  driver: bamboo_lib.connectors.drivers.monet.MonetDriver
+  uri: monetdb://$MONETDB_OEC_USER:$MONETDB_OEC_PASSWORD@$MONETDB_OEC_HOST:$MONETDB_OEC_PORT/$MONETDB_OEC_DB
+
+mit-oec:
+  driver: bamboo_lib.connectors.drivers.postgres.PostgresDriver
+  uri: postgres://$MIT_OEC_DB_USER:$MIT_OEC_DB_PASSWORD@$MIT_OEC_DB_HOST/$MIT_OEC_DB_NAME

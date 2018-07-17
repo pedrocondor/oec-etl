@@ -1,0 +1,11 @@
+.ipynb_checkpoints/
+.vscode/
+.idea/
+data/
+venv/
+
+.env
+.DS_Store
+
+*.pyc
+*.ipynb

@@ -1,0 +1,98 @@
+import os
+
+import pandas as pd
+import pymysql
+
+from bamboo_lib.logger import logger
+from bamboo_lib.models import PipelineStep, ComplexPipelineExecutor
+from bamboo_lib.steps import LoadStep
+from bamboo_lib.connectors.models import Connector
+
+
+class ExtractStep(PipelineStep):
+    def run_step(self, df, params):
+        params["hs92_df"] = pd.read_sql_query(
+            "SELECT * FROM attr_hs92", self.connector
+        )
+        params["hs92_name_df"] = pd.read_sql_query(
+            "SELECT * FROM attr_hs92_name", self.connector
+        )
+        return df
+
+
+class TransformStep(PipelineStep):
+    def run_step(self, df, params):
+        # Select only rows with full id
+        mask = params["hs92_df"].id.str.len() == 8
+        df = params["hs92_df"][mask].copy()
+
+        # Create the new columns for each language
+        for language in params["hs92_name_df"]["lang"].unique():
+            for depth in ["chapter", "hs2", "hs4", "hs6"]:
+                df["%s" % depth] = None
+                df["%s_%s_name" % (depth, language)] = None
+                df["%s_%s_keywords" % (depth, language)] = None
+                df["%s_%s_desc" % (depth, language)] = None
+                df["%s_%s_gender" % (depth, language)] = None
+                df["%s_%s_plural" % (depth, language)] = None
+                df["%s_%s_article" % (depth, language)] = None
+
+        # Populate those new columns with the appropriate language data
+        for index, row in params["hs92_name_df"].iterrows():
+            depth = self.get_depth(row["hs92_id"])
+            language = row["lang"]
+            match = df["id"].str.startswith(row["hs92_id"])
+
+            df.loc[match, "%s" % depth] = row["hs92_id"]
+            df.loc[match, "%s_%s_name" % (depth, language)] = row["name"]
+            df.loc[match, "%s_%s_keywords" % (depth, language)] = row["keywords"]
+            df.loc[match, "%s_%s_desc" % (depth, language)] = row["desc"]
+            df.loc[match, "%s_%s_gender" % (depth, language)] = row["gender"]
+            df.loc[match, "%s_%s_plural" % (depth, language)] = row["plural"]
+            df.loc[match, "%s_%s_article" % (depth, language)] = row["article"]
+
+        # This final dataframe ends up having 444 columns with all of the
+        # language columns added
+        return df
+
+    @staticmethod
+    def get_depth(hs92_id):
+        if len(hs92_id) == 2:
+            return "chapter"
+        elif len(hs92_id) == 4:
+            return "hs2"
+        elif len(hs92_id) == 6:
+            return "hs4"
+        return "hs6"
+
+
+def start_pipeline(params):
+    conn = pymysql.connect(
+        host=os.environ.get("MIT_OEC_DB_HOST"),
+        user=os.environ.get("MIT_OEC_DB_USER"),
+        passwd=os.environ.get("MIT_OEC_DB_PASSWORD"),
+        db=os.environ.get("MIT_OEC_DB_NAME"),
+        port=int(os.environ.get("MIT_OEC_DB_PORT"))
+    )
+
+    conn_path = os.path.join(os.environ.get("OEC_BASE_DIR"), "conns.yaml")
+    monetdb_oec_conn = Connector.fetch("monetdb-oec", open(conn_path))
+
+    extract_step = ExtractStep(connector=conn)
+    transform_step = TransformStep()
+    load_step = LoadStep(
+        "hs%s" % params["year"], monetdb_oec_conn, index=True, schema="oec"
+    )
+
+    logger.info("* OEC pipeline starting...")
+
+    pp = ComplexPipelineExecutor(params)
+    pp = pp.next(extract_step).next(transform_step).next(load_step)
+    pp.run_pipeline()
+
+    logger.info("* OEC pipeline finished.")
+
+
+if __name__ == "__main__":
+    for year in ["92", "96", "02", "07"]:
+        start_pipeline({"year": year})
