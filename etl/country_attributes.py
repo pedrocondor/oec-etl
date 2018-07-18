@@ -18,7 +18,12 @@ class ExtractStep(PipelineStep):
 
 class TransformStep(PipelineStep):
     def run_step(self, df, params):
-        # TODO: Make sure no transformation is needed
+        columns = [
+            "neci", "opp_value", "magic", "pc_constant", "pc_current",
+            "notpc_constant"
+        ]
+        df.drop(columns, axis=1, inplace=True)
+
         return df
 
 
