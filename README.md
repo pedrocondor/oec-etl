@@ -38,3 +38,8 @@ $ python pipelines.py
 ```
 
 After the pipeline has finished running (which will take a few hours)... 
+
+## Not yet implemented:
+
+- STIC Cube
+- STIC PCI Table

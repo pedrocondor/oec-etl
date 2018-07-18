@@ -65,20 +65,19 @@ def start_pipeline(params):
     conn_path = os.path.join(os.environ.get("OEC_BASE_DIR"), "conns.yaml")
     monetdb_oec_conn = Connector.fetch("monetdb-oec", open(conn_path))
 
+    schema_name = "%s_yearly_data" % params["class_name"]
+
     extract_step = ExtractStep(connector=conn)
     transform_step = TransformStep()
     load_step = LoadStep(
-        "%s_yearly_data" % params["class_name"], monetdb_oec_conn, index=True,
-        schema="oec"
+        schema_name, monetdb_oec_conn, index=True, schema="oec"
     )
 
-    logger.info("* OEC pipeline starting...")
+    logger.info("* OEC - %s pipeline starting..." % schema_name)
 
     pp = ComplexPipelineExecutor(params)
     pp = pp.next(extract_step).next(transform_step).next(load_step)
     pp.run_pipeline()
-
-    logger.info("* OEC pipeline finished.")
 
 
 if __name__ == "__main__":

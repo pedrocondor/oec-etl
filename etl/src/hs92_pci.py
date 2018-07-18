@@ -48,13 +48,11 @@ def start_pipeline():
         "hs92_pci", monetdb_oec_conn, index=True, schema="oec"
     )
 
-    logger.info("* OEC pipeline starting...")
+    logger.info("* OEC - hs92_pci pipeline starting...")
 
     pp = ComplexPipelineExecutor({})
     pp = pp.next(extract_step).next(transform_step).next(load_step)
     pp.run_pipeline()
-
-    logger.info("* OEC pipeline finished.")
 
 
 if __name__ == "__main__":

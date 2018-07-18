@@ -73,13 +73,11 @@ def start_pipeline():
         "countries", monetdb_oec_conn, index=True, schema="oec"
     )
 
-    logger.info("* OEC pipeline starting...")
+    logger.info("* OEC - countries pipeline starting...")
 
     pp = ComplexPipelineExecutor({})
     pp = pp.next(extract_step).next(transform_step).next(load_step)
     pp.run_pipeline()
-
-    logger.info("* OEC pipeline finished.")
 
 
 if __name__ == "__main__":

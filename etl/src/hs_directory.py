@@ -87,13 +87,11 @@ def start_pipeline(params):
         params["class_name"], monetdb_oec_conn, index=True, schema="oec"
     )
 
-    logger.info("* OEC pipeline starting...")
+    logger.info("* OEC - %s pipeline starting..." % params["class_name"])
 
     pp = ComplexPipelineExecutor(params)
     pp = pp.next(extract_step).next(transform_step).next(load_step)
     pp.run_pipeline()
-
-    logger.info("* OEC pipeline finished.")
 
 
 if __name__ == "__main__":
