@@ -12,7 +12,7 @@ from bamboo_lib.connectors.models import Connector
 class ExtractStep(PipelineStep):
     def run_step(self, df, params):
         return pd.read_sql_query(
-            "SELECT * FROM hs92_yp WHERE year = 2016", self.connector
+            "SELECT * FROM %s_yp" % params["class_name"], self.connector
         )
 
 
@@ -30,7 +30,7 @@ class TransformStep(PipelineStep):
         return df
 
 
-def start_pipeline():
+def start_pipeline(params):
     conn = pymysql.connect(
         host=os.environ.get("MIT_OEC_DB_HOST"),
         user=os.environ.get("MIT_OEC_DB_USER"),
@@ -42,18 +42,21 @@ def start_pipeline():
     conn_path = os.path.join(os.environ.get("OEC_BASE_DIR"), "conns.yaml")
     monetdb_oec_conn = Connector.fetch("monetdb-oec", open(conn_path))
 
+    schema_name = "%s_pci" % params["class_name"]
+
     extract_step = ExtractStep(connector=conn)
     transform_step = TransformStep()
     load_step = LoadStep(
-        "hs92_pci", monetdb_oec_conn, index=True, schema="oec"
+        schema_name, monetdb_oec_conn, index=True, schema="oec"
     )
 
-    logger.info("* OEC - hs92_pci pipeline starting...")
+    logger.info("* OEC - %s pipeline starting..." % schema_name)
 
-    pp = ComplexPipelineExecutor({})
+    pp = ComplexPipelineExecutor(params)
     pp = pp.next(extract_step).next(transform_step).next(load_step)
     pp.run_pipeline()
 
 
 if __name__ == "__main__":
-    start_pipeline()
+    for year in ["92", "96", "02", "07"]:
+        start_pipeline({"year": year, "class_name": "hs%s" % year})
