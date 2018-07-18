@@ -11,7 +11,7 @@ from bamboo_lib.connectors.models import Connector
 
 class ExtractStep(PipelineStep):
     def run_step(self, df, params):
-        # NOTE: Skipping this now for simplicity
+        # NOTE: Not working with raw data for now
         # df = pd.read_csv(
         #     os.path.join(os.environ.get("OEC_BASE_DIR"), "data", "hs%s_2016.csv" % params["year"])
         # )
@@ -29,7 +29,7 @@ class ExtractStep(PipelineStep):
 
 class TransformStep(PipelineStep):
     def run_step(self, df, params):
-        # NOTE: Skipping this now for simplicity
+        # NOTE: Not working with raw data for now
         # df.rename(
         #     columns={
         #         "t": "year", "i": "origin_id", "j": "destination_id",
