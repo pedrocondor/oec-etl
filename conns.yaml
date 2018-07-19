@@ -4,4 +4,4 @@ monetdb-oec:
 
 mit-oec:
   driver: bamboo_lib.connectors.drivers.postgres.PostgresDriver
-  uri: postgres://$MIT_OEC_DB_USER:$MIT_OEC_DB_PASSWORD@$MIT_OEC_DB_HOST/$MIT_OEC_DB_NAME
+  uri: postgres://$ORIGINAL_OEC_DB_USER:$ORIGINAL_OEC_DB_PASSWORD@$ORIGINAL_OEC_DB_HOST/$ORIGINAL_OEC_DB_NAME
