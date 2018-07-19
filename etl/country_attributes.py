@@ -29,11 +29,11 @@ class TransformStep(PipelineStep):
 
 def start_pipeline():
     conn = pymysql.connect(
-        host=os.environ.get("MIT_OEC_DB_HOST"),
-        user=os.environ.get("MIT_OEC_DB_USER"),
-        passwd=os.environ.get("MIT_OEC_DB_PASSWORD"),
-        db=os.environ.get("MIT_OEC_DB_NAME"),
-        port=int(os.environ.get("MIT_OEC_DB_PORT"))
+        host=os.environ.get("ORIGINAL_OEC_DB_HOST"),
+        user=os.environ.get("ORIGINAL_OEC_DB_USER"),
+        passwd=os.environ.get("ORIGINAL_OEC_DB_PASSWORD"),
+        db=os.environ.get("ORIGINAL_OEC_DB_NAME"),
+        port=int(os.environ.get("ORIGINAL_OEC_DB_PORT"))
     )
 
     conn_path = os.path.join(os.environ.get("OEC_BASE_DIR"), "conns.yaml")
