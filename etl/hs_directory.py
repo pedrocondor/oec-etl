@@ -44,6 +44,9 @@ class TransformStep(PipelineStep):
 
         # Populate those new columns with the appropriate language data
         for index, row in params["%s_name_df" % class_name].iterrows():
+            if index % 500 == 0:
+                logger.info("%s: %d language rows added" % (params["class_name"], index))
+
             depth = self.get_depth(row["%s_id" % class_name])
             language = row["lang"]
             match = df["id"].str.startswith(row["%s_id" % class_name])

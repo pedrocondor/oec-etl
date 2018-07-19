@@ -18,13 +18,11 @@ class ExtractStep(PipelineStep):
 
         class_name = params["class_name"]
 
-        params["%s_yodp_df" % class_name] = pd.read_sql_query(
-            "SELECT * FROM %s_yodp WHERE year = 2016 AND LENGTH(%s_id) = 8 LIMIT 1000" % (
+        return pd.read_sql_query(
+            "SELECT * FROM %s_yodp WHERE year = 2016 AND LENGTH(%s_id) = 8" % (
                 class_name, class_name
             ), self.connector
         )
-
-        return df
 
 
 class TransformStep(PipelineStep):
@@ -38,11 +36,9 @@ class TransformStep(PipelineStep):
         #     inplace=True
         # )
 
-        class_name = params["class_name"]
-
         # We will be calculating growth data on the fly
         columns = [
-            "%s_id_len" % class_name, "export_val_growth_pct",
+            "%s_id_len" % params["class_name"], "export_val_growth_pct",
             "export_val_growth_pct_5", "export_val_growth_val",
             "export_val_growth_val_5", "import_val_growth_pct",
             "import_val_growth_pct_5", "import_val_growth_val",
