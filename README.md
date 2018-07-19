@@ -46,7 +46,7 @@ Once logged in, create the appropriate schemas:
 
 ```
 sql> CREATE SCHEMA "atlas";
-sql> CREATE SCHEMA "public";
+sql> CREATE SCHEMA "oec";
 sql> \q
 ```
 

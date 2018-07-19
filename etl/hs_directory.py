@@ -87,7 +87,7 @@ def start_pipeline(params):
     extract_step = ExtractStep(connector=conn)
     transform_step = TransformStep()
     load_step = LoadStep(
-        params["class_name"], monetdb_oec_conn, index=True, schema="public"
+        params["class_name"], monetdb_oec_conn, index=True, schema="oec"
     )
 
     logger.info("* OEC - %s pipeline starting..." % params["class_name"])
