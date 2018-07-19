@@ -9,6 +9,7 @@ cryptography==2.3
 data-catapult==0.0.6
 dnspython==1.15.0
 flake8==3.5.0
+greenlet==0.4.14
 idna==2.7
 mccabe==0.6.1
 numpy==1.14.5
