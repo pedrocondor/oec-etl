@@ -42,7 +42,7 @@ def start_pipeline():
     extract_step = ExtractStep(connector=conn)
     transform_step = TransformStep()
     load_step = LoadStep(
-        "attr_yo", monetdb_oec_conn, index=True, schema="oec"
+        "attr_yo", monetdb_oec_conn, index=True, schema="public"
     )
 
     logger.info("* OEC - attr_yo pipeline starting...")
