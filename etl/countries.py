@@ -70,7 +70,7 @@ def start_pipeline():
     extract_step = ExtractStep(connector=conn)
     transform_step = TransformStep()
     load_step = LoadStep(
-        "countries", monetdb_oec_conn, index=True, schema="c"
+        "countries", monetdb_oec_conn, index=True, schema="public"
     )
 
     logger.info("* OEC - countries pipeline starting...")
