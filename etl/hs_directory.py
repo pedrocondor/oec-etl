@@ -41,7 +41,7 @@ class TransformStep(PipelineStep):
             
             data = {
                 "id": o_row["id"],
-                "hs92": o_row["hs92"],
+                class_name: o_row[class_name],
                 "conversion": o_row["conversion"],
                 "color": o_row["color"],
                 "id_old": o_row["id_old"],
