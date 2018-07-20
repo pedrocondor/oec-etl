@@ -27,39 +27,56 @@ class TransformStep(PipelineStep):
     def run_step(self, df, params):
         class_name = params["class_name"]
 
-        # Select only rows with full id
-        mask = params["%s_df" % class_name].id.str.len() == 8
-        df = params["%s_df" % class_name][mask].copy()
+        original_df = params["%s_df" % class_name]
+        name_df = params["%s_name_df" % class_name]
+        final_df = pd.DataFrame()
 
-        # Create the new columns for each language
-        for language in params["%s_name_df" % class_name]["lang"].unique():
-            for depth in ["chapter", "hs2", "hs4", "hs6"]:
-                df["%s" % depth] = None
-                df["%s_%s_name" % (depth, language)] = None
-                df["%s_%s_keywords" % (depth, language)] = None
-                df["%s_%s_desc" % (depth, language)] = None
-                df["%s_%s_gender" % (depth, language)] = None
-                df["%s_%s_plural" % (depth, language)] = None
-                df["%s_%s_article" % (depth, language)] = None
-
-        # Populate those new columns with the appropriate language data
-        for index, row in params["%s_name_df" % class_name].iterrows():
-            if index % 500 == 0:
-                logger.info("%s: %d language rows added" % (params["class_name"], index))
-
-            depth = self.get_depth(row["%s_id" % class_name])
-            language = row["lang"]
-            match = df["id"].str.startswith(row["%s_id" % class_name])
-
-            df.loc[match, "%s" % depth] = row["%s_id" % class_name]
-            df.loc[match, "%s_%s_name" % (depth, language)] = row["name"]
-            df.loc[match, "%s_%s_keywords" % (depth, language)] = row["keywords"]
-            df.loc[match, "%s_%s_desc" % (depth, language)] = row["desc"]
-            df.loc[match, "%s_%s_gender" % (depth, language)] = row["gender"]
-            df.loc[match, "%s_%s_plural" % (depth, language)] = row["plural"]
-            df.loc[match, "%s_%s_article" % (depth, language)] = row["article"]
-
-        return df
+        languages = name_df["lang"].unique()
+                
+        for index, o_row in original_df.iterrows():
+            if index % 1000 == 0:
+                logger.info("%d rows added" % index)
+                
+            matches_df = name_df.loc[name_df["%s_id" % class_name] == o_row["id"]]
+            
+            data = {
+                "id": o_row["id"],
+                "hs92": o_row["hs92"],
+                "conversion": o_row["conversion"],
+                "color": o_row["color"],
+                "id_old": o_row["id_old"],
+                "image_author": o_row["image_author"],
+                "image_link": o_row["image_link"],
+                "palette": o_row["palette"]
+            }
+            
+            # Create the new columns for each language
+            for language in languages:
+                for depth in ["chapter", "hs2", "hs4", "hs6"]:
+                    data["%s" % depth] = None
+                    data["%s_%s_name" % (depth, language)] = None
+                    data["%s_%s_keywords" % (depth, language)] = None
+                    data["%s_%s_desc" % (depth, language)] = None
+                    data["%s_%s_gender" % (depth, language)] = None
+                    data["%s_%s_plural" % (depth, language)] = None
+                    data["%s_%s_article" % (depth, language)] = None
+            
+            for _, m_row in matches_df.iterrows():
+                depth = self.get_depth(m_row["%s_id" % class_name])
+                language = m_row["lang"]
+                
+                data["%s" % depth] = m_row["%s_id" % class_name]
+                data["%s_%s_name" % (depth, language)] = m_row["name"]
+                data["%s_%s_keywords" % (depth, language)] = m_row["keywords"]
+                data["%s_%s_desc" % (depth, language)] = m_row["desc"]
+                data["%s_%s_gender" % (depth, language)] = m_row["gender"]
+                data["%s_%s_plural" % (depth, language)] = m_row["plural"]
+                data["%s_%s_article" % (depth, language)] = m_row["article"]
+                
+            df = pd.DataFrame(data, index=[0])
+            final_df = final_df.append(df, sort=False)
+                
+        return final_df
 
     @staticmethod
     def get_depth(hs_id):
