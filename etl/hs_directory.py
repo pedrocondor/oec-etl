@@ -45,10 +45,12 @@ class TransformStep(PipelineStep):
                 "conversion": o_row["conversion"],
                 "color": o_row["color"],
                 "id_old": o_row["id_old"],
-                "image_author": o_row["image_author"],
-                "image_link": o_row["image_link"],
-                "palette": o_row["palette"]
             }
+
+            if class_name == "hs92":
+                data["image_author"] = o_row["image_author"]
+                data["image_link"] = o_row["image_link"]
+                data["palette"] = o_row["palette"]
             
             # Create the new columns for each language
             for language in languages:
@@ -115,5 +117,5 @@ def start_pipeline(params):
 
 
 if __name__ == "__main__":
-    for year in ["92", "96", "02", "07"]:
+    for year in ["96", "02", "07"]:
         start_pipeline({"year": year, "class_name": "hs%s" % year})
