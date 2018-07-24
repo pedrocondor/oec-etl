@@ -12,11 +12,15 @@ from bamboo_lib.connectors.models import Connector
 class ExtractStep(PipelineStep):
     def run_step(self, df, params):
         # NOTE: Not working with raw data for now
-        # df = pd.read_csv(
-        #     os.path.join(os.environ.get("OEC_BASE_DIR"), "data", "hs%s_2016.csv" % params["year"])
-        # )
-
         class_name = params["class_name"]
+
+        # return pd.read_csv(
+        #     os.path.join(
+        #         os.environ.get("OEC_BASE_DIR"), 
+        #         "data", 
+        #         "%s_2016.csv" % class_name
+        #     )
+        # )
 
         return pd.read_sql_query(
             "SELECT * FROM %s_yodp WHERE year = 2016 AND LENGTH(%s_id) = 8" % (
@@ -35,6 +39,9 @@ class TransformStep(PipelineStep):
         #     },
         #     inplace=True
         # )
+
+        # df["export_val"].fillna(0).astype(int)
+        # df["import_val"].fillna(0).astype(int)
 
         # We will be calculating growth data on the fly
         columns = [
