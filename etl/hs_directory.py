@@ -58,7 +58,7 @@ class TransformStep(PipelineStep):
                 value["hs4"] = key[2:6]
                 value["hs6"] = key[2:]
 
-                for depth in ["chapter", "hs2", "hs4"]:
+                for depth in ["chapter", "hs2", "hs4", "hs6"]:
                     value["%s_%s_name" % (depth, language)] = None
                     value["%s_%s_keywords" % (depth, language)] = None
                     value["%s_%s_desc" % (depth, language)] = None
