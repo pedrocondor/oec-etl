@@ -14,7 +14,7 @@ class ExtractStep(PipelineStep):
         class_name = params["class_name"]
 
         params["%s_df" % class_name] = pd.read_sql_query(
-            "SELECT * FROM attr_% LIMIT 500" % class_name, self.connector
+            "SELECT * FROM attr_%s LIMIT 500" % class_name, self.connector
         )
         params["%s_name_df" % class_name] = pd.read_sql_query(
             "SELECT * FROM attr_%s_name" % class_name, self.connector
@@ -28,75 +28,120 @@ class TransformStep(PipelineStep):
         class_name = params["class_name"]
 
         original_df = params["%s_df" % class_name]
-        name_df = params["%s_name_df" % class_name]
+        original_name_df = params["%s_name_df" % class_name]
+
+        chapter_dict = self.get_dict(original_df.loc[original_df["id"].str.len() == 2])
+        hs4_dict = self.get_dict(original_df.loc[original_df["id"].str.len() == 6])
+        hs6_dict = self.get_dict(original_df.loc[original_df["id"].str.len() == 8])  # this will be the final df
+
+        if class_name == "hs92":
+            for k, v in hs6_dict.items():
+                for key, value in v.items():
+                    if key in ["image_author", "image_link", "palette"] and value is None:
+                        hs4 = hs4_dict[k[:6]]
+
+                        v[key] = hs4[key]
+
+                for key, value in v.items():
+                    if key in ["image_author", "image_link", "palette"] and value is None:
+                        chapter = chapter_dict[k[:2]]
+
+                        v[key] = chapter[key]
+
+        # Add extra columns
+        languages = original_name_df["lang"].unique()
+
+        for key, value in hs6_dict.items():
+            for language in languages:
+                value["chapter"] = key[:2]
+                value["hs2"] = key[2:4]
+                value["hs4"] = key[2:6]
+                value["hs6"] = key[2:]
+
+                for depth in ["chapter", "hs2", "hs4"]:
+                    value["%s_%s_name" % (depth, language)] = None
+                    value["%s_%s_keywords" % (depth, language)] = None
+                    value["%s_%s_desc" % (depth, language)] = None
+                    value["%s_%s_gender" % (depth, language)] = None
+                    value["%s_%s_plural" % (depth, language)] = None
+                    value["%s_%s_article" % (depth, language)] = None
+
+        # Name stuff
+        id_column = "%s_id" % class_name
+
+        chapter_name_dict = self.get_name_dict(original_name_df.loc[original_name_df[id_column].str.len() == 2], id_column)
+        hs4_name_dict = self.get_name_dict(original_name_df.loc[original_name_df[id_column].str.len() == 6], id_column)
+        hs6_name_dict = self.get_name_dict(original_name_df.loc[original_name_df[id_column].str.len() == 8], id_column)
+
+        for k, v in chapter_name_dict.items():
+            for key, value in hs6_dict.items():
+                if key[:2] == k:
+                    language = v["lang"]
+
+                    value["chapter_%s_name" % language] = v["name"]
+                    value["chapter_%s_keywords" % language] = v["keywords"]
+                    value["chapter_%s_desc" % language] = v["desc"]
+                    value["chapter_%s_gender" % language] = v["gender"]
+                    value["chapter_%s_plural" % language] = v["plural"]
+                    value["chapter_%s_article" % language] = v["article"]
+
+        for k, v in hs4_name_dict.items():
+            for key, value in hs6_dict.items():
+                if key[:6] == k:
+                    language = v["lang"]
+
+                    value["hs4_%s_name" % language] = v["name"]
+                    value["hs4_%s_keywords" % language] = v["keywords"]
+                    value["hs4_%s_desc" % language] = v["desc"]
+                    value["hs4_%s_gender" % language] = v["gender"]
+                    value["hs4_%s_plural" % language] = v["plural"]
+                    value["hs4_%s_article" % language] = v["article"]
+
+        for k, v in hs6_name_dict.items():
+            for key, value in hs6_dict.items():
+                if key == k:
+                    language = v["lang"]
+
+                    value["hs6_%s_name" % language] = v["name"]
+                    value["hs6_%s_keywords" % language] = v["keywords"]
+                    value["hs6_%s_desc" % language] = v["desc"]
+                    value["hs6_%s_gender" % language] = v["gender"]
+                    value["hs6_%s_plural" % language] = v["plural"]
+                    value["hs6_%s_article" % language] = v["article"]
+
         final_df = pd.DataFrame()
 
-        languages = name_df["lang"].unique()
-                
-        for index, o_row in original_df.iterrows():
-            if index % 1000 == 0:
-                logger.info("%d rows added" % index)
-                
-            matches_df = name_df.loc[name_df["%s_id" % class_name] == o_row["id"]]
-            
-            data = {
-                "id": o_row["id"],
-                class_name: o_row[class_name],
-                "conversion": o_row["conversion"],
-                "color": o_row["color"],
-                "id_old": o_row["id_old"],
-                "id_full": None
-            }
-
-            if class_name == "hs92":
-                data["image_author"] = o_row["image_author"]
-                data["image_link"] = o_row["image_link"]
-                data["palette"] = o_row["palette"]
-
-            # # Create the new columns for each language
-            # for language in languages:
-            #     for depth in ["chapter", "hs2", "hs4", "hs6"]:
-            #         data["%s" % depth] = None
-            #         data["%s_%s_name" % (depth, language)] = None
-            #         data["%s_%s_keywords" % (depth, language)] = None
-            #         data["%s_%s_desc" % (depth, language)] = None
-            #         data["%s_%s_gender" % (depth, language)] = None
-            #         data["%s_%s_plural" % (depth, language)] = None
-            #         data["%s_%s_article" % (depth, language)] = None
-            #
-            # for _, m_row in matches_df.iterrows():
-            #     depth = self.get_depth(m_row["%s_id" % class_name])
-            #     language = m_row["lang"]
-            #
-            #     hs_id = m_row["%s_id" % class_name]
-            #
-            #     if depth != "chapter":
-            #         hs_id = hs_id[2:]
-            #
-            #     data["%s" % depth] = hs_id
-            #     data["%s_%s_name" % (depth, language)] = m_row["name"]
-            #     data["%s_%s_keywords" % (depth, language)] = m_row["keywords"]
-            #     data["%s_%s_desc" % (depth, language)] = m_row["desc"]
-            #     data["%s_%s_gender" % (depth, language)] = m_row["gender"]
-            #     data["%s_%s_plural" % (depth, language)] = m_row["plural"]
-            #     data["%s_%s_article" % (depth, language)] = m_row["article"]
-                
-            df = pd.DataFrame(data, index=[0])
+        for _, value in hs6_dict.items():
+            df = pd.DataFrame(value, index=[0])
             final_df = final_df.append(df, sort=False)
-
-        print(final_df)
 
         return final_df
 
     @staticmethod
-    def get_depth(hs_id):
-        if len(hs_id) == 2:
-            return "chapter"
-        elif len(hs_id) == 4:
-            return "hs2"
-        elif len(hs_id) == 6:
-            return "hs4"
-        return "hs6"
+    def get_dict(df):
+        d = dict()
+        h = df.to_dict(orient="records")
+
+        index = 0
+
+        for _, row in df.iterrows():
+            d[row["id"]] = h[index]
+            index += 1
+
+        return d
+
+    @staticmethod
+    def get_name_dict(df, id_column):
+        d = dict()
+        h = df.to_dict(orient="records")
+
+        index = 0
+
+        for _, row in df.iterrows():
+            d[row[id_column]] = h[index]
+            index += 1
+
+        return d
 
 
 def start_pipeline(params):
@@ -125,6 +170,5 @@ def start_pipeline(params):
 
 
 if __name__ == "__main__":
-    # for year in ["92", "96", "02", "07"]:
-    for year in ["92"]:
+    for year in ["92", "96", "02", "07"]:
         start_pipeline({"year": year, "class_name": "hs%s" % year})
