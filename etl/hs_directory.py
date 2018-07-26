@@ -14,7 +14,7 @@ class ExtractStep(PipelineStep):
         class_name = params["class_name"]
 
         params["%s_df" % class_name] = pd.read_sql_query(
-            "SELECT * FROM attr_%s" % class_name, self.connector
+            "SELECT * FROM attr_% LIMIT 500" % class_name, self.connector
         )
         params["%s_name_df" % class_name] = pd.read_sql_query(
             "SELECT * FROM attr_%s_name" % class_name, self.connector
@@ -52,38 +52,39 @@ class TransformStep(PipelineStep):
                 data["image_author"] = o_row["image_author"]
                 data["image_link"] = o_row["image_link"]
                 data["palette"] = o_row["palette"]
-            
-            # Create the new columns for each language
-            for language in languages:
-                for depth in ["chapter", "hs2", "hs4", "hs6"]:
-                    data["%s" % depth] = None
-                    data["%s_%s_name" % (depth, language)] = None
-                    data["%s_%s_keywords" % (depth, language)] = None
-                    data["%s_%s_desc" % (depth, language)] = None
-                    data["%s_%s_gender" % (depth, language)] = None
-                    data["%s_%s_plural" % (depth, language)] = None
-                    data["%s_%s_article" % (depth, language)] = None
-            
-            for _, m_row in matches_df.iterrows():
-                depth = self.get_depth(m_row["%s_id" % class_name])
-                language = m_row["lang"]
 
-                hs_id = m_row["%s_id" % class_name]
-
-                if depth != "chapter":
-                    hs_id = hs_id[2:]
-                
-                data["%s" % depth] = hs_id
-                data["id_full"] = m_row["%s_id" % class_name]
-                data["%s_%s_name" % (depth, language)] = m_row["name"]
-                data["%s_%s_keywords" % (depth, language)] = m_row["keywords"]
-                data["%s_%s_desc" % (depth, language)] = m_row["desc"]
-                data["%s_%s_gender" % (depth, language)] = m_row["gender"]
-                data["%s_%s_plural" % (depth, language)] = m_row["plural"]
-                data["%s_%s_article" % (depth, language)] = m_row["article"]
+            # # Create the new columns for each language
+            # for language in languages:
+            #     for depth in ["chapter", "hs2", "hs4", "hs6"]:
+            #         data["%s" % depth] = None
+            #         data["%s_%s_name" % (depth, language)] = None
+            #         data["%s_%s_keywords" % (depth, language)] = None
+            #         data["%s_%s_desc" % (depth, language)] = None
+            #         data["%s_%s_gender" % (depth, language)] = None
+            #         data["%s_%s_plural" % (depth, language)] = None
+            #         data["%s_%s_article" % (depth, language)] = None
+            #
+            # for _, m_row in matches_df.iterrows():
+            #     depth = self.get_depth(m_row["%s_id" % class_name])
+            #     language = m_row["lang"]
+            #
+            #     hs_id = m_row["%s_id" % class_name]
+            #
+            #     if depth != "chapter":
+            #         hs_id = hs_id[2:]
+            #
+            #     data["%s" % depth] = hs_id
+            #     data["%s_%s_name" % (depth, language)] = m_row["name"]
+            #     data["%s_%s_keywords" % (depth, language)] = m_row["keywords"]
+            #     data["%s_%s_desc" % (depth, language)] = m_row["desc"]
+            #     data["%s_%s_gender" % (depth, language)] = m_row["gender"]
+            #     data["%s_%s_plural" % (depth, language)] = m_row["plural"]
+            #     data["%s_%s_article" % (depth, language)] = m_row["article"]
                 
             df = pd.DataFrame(data, index=[0])
             final_df = final_df.append(df, sort=False)
+
+        print(final_df)
 
         return final_df
 
