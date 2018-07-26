@@ -11,47 +11,30 @@ from bamboo_lib.connectors.models import Connector
 
 class ExtractStep(PipelineStep):
     def run_step(self, df, params):
-        # NOTE: Not working with raw data for now
         class_name = params["class_name"]
 
-        # return pd.read_csv(
-        #     os.path.join(
-        #         os.environ.get("OEC_BASE_DIR"), 
-        #         "data", 
-        #         "%s_2016.csv" % class_name
-        #     )
-        # )
-
-        return pd.read_sql_query(
-            "SELECT * FROM %s_yodp WHERE year = 2016 AND LENGTH(%s_id) = 8" % (
-                class_name, class_name
-            ), self.connector
+        return pd.read_csv(
+            os.path.join(
+                os.environ.get("OEC_BASE_DIR"),
+                "data",
+                "%s_2016.csv" % class_name
+            ),
+            dtype={"hs6": object, "i": object, "j": object}
         )
 
 
 class TransformStep(PipelineStep):
     def run_step(self, df, params):
-        # NOTE: Not working with raw data for now
-        # df.rename(
-        #     columns={
-        #         "t": "year", "i": "origin_id", "j": "destination_id",
-        #         "v": "export_val", "q": "import_val"
-        #     },
-        #     inplace=True
-        # )
+        df.rename(
+            columns={
+                "t": "year", "i": "origin_id", "j": "destination_id",
+                "hs6": "%s_id" % params["class_name"], "v": "export_val",
+                "q": "import_val"
+            },
+            inplace=True
+        )
 
-        # df["export_val"].fillna(0).astype(int)
-        # df["import_val"].fillna(0).astype(int)
-
-        # We will be calculating growth data on the fly
-        columns = [
-            "%s_id_len" % params["class_name"], "export_val_growth_pct",
-            "export_val_growth_pct_5", "export_val_growth_val",
-            "export_val_growth_val_5", "import_val_growth_pct",
-            "import_val_growth_pct_5", "import_val_growth_val",
-            "import_val_growth_val_5"
-        ]
-        df.drop(columns, axis=1, inplace=True)
+        df[["export_val", "import_val"]] = df[["export_val", "import_val"]].apply(lambda x: x * 1000).round(2)
 
         return df
 
@@ -70,10 +53,18 @@ def start_pipeline(params):
 
     schema_name = "%s_yearly_data" % params["class_name"]
 
+    dtype = {
+        "hs6": "VARCHAR(6)",
+        "origin_id": "VARCHAR(3)",
+        "destination_id": "VARCHAR(3)",
+        "export_val": "DECIMAL",
+        "import_val": "DECIMAL"
+    }
+
     extract_step = ExtractStep(connector=conn)
     transform_step = TransformStep()
     load_step = LoadStep(
-        schema_name, monetdb_oec_conn, index=True, schema="oec"
+        schema_name, monetdb_oec_conn, index=True, schema="oec", dtype=dtype
     )
 
     logger.info("* OEC - %s pipeline starting..." % schema_name)

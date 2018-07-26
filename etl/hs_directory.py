@@ -45,6 +45,7 @@ class TransformStep(PipelineStep):
                 "conversion": o_row["conversion"],
                 "color": o_row["color"],
                 "id_old": o_row["id_old"],
+                "id_full": None
             }
 
             if class_name == "hs92":
@@ -66,8 +67,14 @@ class TransformStep(PipelineStep):
             for _, m_row in matches_df.iterrows():
                 depth = self.get_depth(m_row["%s_id" % class_name])
                 language = m_row["lang"]
+
+                hs_id = m_row["%s_id" % class_name]
+
+                if depth != "chapter":
+                    hs_id = hs_id[2:]
                 
-                data["%s" % depth] = m_row["%s_id" % class_name]
+                data["%s" % depth] = hs_id
+                data["id_full"] = m_row["%s_id" % class_name]
                 data["%s_%s_name" % (depth, language)] = m_row["name"]
                 data["%s_%s_keywords" % (depth, language)] = m_row["keywords"]
                 data["%s_%s_desc" % (depth, language)] = m_row["desc"]
@@ -77,7 +84,7 @@ class TransformStep(PipelineStep):
                 
             df = pd.DataFrame(data, index=[0])
             final_df = final_df.append(df, sort=False)
-                
+
         return final_df
 
     @staticmethod
@@ -117,5 +124,6 @@ def start_pipeline(params):
 
 
 if __name__ == "__main__":
-    for year in ["92", "96", "02", "07"]:
+    # for year in ["92", "96", "02", "07"]:
+    for year in ["92"]:
         start_pipeline({"year": year, "class_name": "hs%s" % year})
