@@ -14,7 +14,7 @@ class ExtractStep(PipelineStep):
         class_name = params["class_name"]
 
         df = pd.read_sql_query(
-            "SELECT * FROM attr_%s LIMIT 500" % class_name, self.connector
+            "SELECT * FROM attr_%s" % class_name, self.connector
         )
         name_df = pd.read_sql_query(
             "SELECT * FROM attr_%s_name" % class_name, self.connector
@@ -58,7 +58,6 @@ class TransformStep(PipelineStep):
                     value["%s_%s_plural" % (depth, language)] = None
                     value["%s_%s_article" % (depth, language)] = None
 
-        # Name stuff
         id_column = "%s_id" % class_name
 
         chapter_name_dict = self.df_to_dict(
@@ -71,8 +70,15 @@ class TransformStep(PipelineStep):
             name_df.loc[name_df[id_column].str.len() == 8], id_column
         )
 
+        # populate language data from chapter, hs4 and hs6
         hs6_dict = self.populate_language_info(
-            chapter_name_dict, hs4_name_dict, hs6_name_dict, hs6_dict, languages
+            chapter_name_dict, hs6_dict, languages, 0, 2
+        )
+        hs6_dict = self.populate_language_info(
+            hs4_name_dict, hs6_dict, languages, 0, 6
+        )
+        hs6_dict = self.populate_language_info(
+            hs6_name_dict, hs6_dict, languages, 0, 8
         )
 
         final_df = pd.DataFrame()
@@ -124,46 +130,19 @@ class TransformStep(PipelineStep):
         return hs6_dict
 
     @staticmethod
-    def populate_language_info(chapter_name_dict, hs4_name_dict, hs6_name_dict,
-                               hs6_dict, languages):
-        for k, v in chapter_name_dict.items():
+    def populate_language_info(d, hs6_dict, languages, start, end):
+        for k, v in d.items():
             for key, value in hs6_dict.items():
-                if key[:2] == k:
+                if key[start:end] == k:
                     for language in languages:
                         if language in v:
-                            x = v[language]
-                            value["chapter_%s_name" % language] = x["name"]
-                            value["chapter_%s_keywords" % language] = x["keywords"]
-                            value["chapter_%s_desc" % language] = x["desc"]
-                            value["chapter_%s_gender" % language] = x["gender"]
-                            value["chapter_%s_plural" % language] = x["plural"]
-                            value["chapter_%s_article" % language] = x["article"]
-
-        for k, v in hs4_name_dict.items():
-            for key, value in hs6_dict.items():
-                if key[:6] == k:
-                    for language in languages:
-                        if language in v:
-                            x = v[language]
-                            value["hs4_%s_name" % language] = x["name"]
-                            value["hs4_%s_keywords" % language] = x["keywords"]
-                            value["hs4_%s_desc" % language] = x["desc"]
-                            value["hs4_%s_gender" % language] = x["gender"]
-                            value["hs4_%s_plural" % language] = x["plural"]
-                            value["hs4_%s_article" % language] = x["article"]
-
-        for k, v in hs6_name_dict.items():
-            for key, value in hs6_dict.items():
-                if key == k:
-                    for language in languages:
-                        if language in v:
-                            x = v[language]
-                            value["hs6_%s_name" % language] = x["name"]
-                            value["hs6_%s_keywords" % language] = x["keywords"]
-                            value["hs6_%s_desc" % language] = x["desc"]
-                            value["hs6_%s_gender" % language] = x["gender"]
-                            value["hs6_%s_plural" % language] = x["plural"]
-                            value["hs6_%s_article" % language] = x["article"]
+                            language_data = v[language]
+                            value["chapter_%s_name" % language] = language_data["name"]
+                            value["chapter_%s_keywords" % language] = language_data["keywords"]
+                            value["chapter_%s_desc" % language] = language_data["desc"]
+                            value["chapter_%s_gender" % language] = language_data["gender"]
+                            value["chapter_%s_plural" % language] = language_data["plural"]
+                            value["chapter_%s_article" % language] = language_data["article"]
 
         return hs6_dict
 
@@ -194,5 +173,5 @@ def start_pipeline(params):
 
 
 if __name__ == "__main__":
-    for year in ["92"]:
+    for year in ["92", "96", "02", "07"]:
         start_pipeline({"year": year, "class_name": "hs%s" % year})
