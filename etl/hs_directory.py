@@ -76,38 +76,41 @@ class TransformStep(PipelineStep):
         for k, v in chapter_name_dict.items():
             for key, value in hs6_dict.items():
                 if key[:2] == k:
-                    language = v["lang"]
-
-                    value["chapter_%s_name" % language] = v["name"]
-                    value["chapter_%s_keywords" % language] = v["keywords"]
-                    value["chapter_%s_desc" % language] = v["desc"]
-                    value["chapter_%s_gender" % language] = v["gender"]
-                    value["chapter_%s_plural" % language] = v["plural"]
-                    value["chapter_%s_article" % language] = v["article"]
+                    for language in languages:
+                        if language in v:
+                            x = v[language]
+                            value["chapter_%s_name" % language] = x["name"]
+                            value["chapter_%s_keywords" % language] = x["keywords"]
+                            value["chapter_%s_desc" % language] = x["desc"]
+                            value["chapter_%s_gender" % language] = x["gender"]
+                            value["chapter_%s_plural" % language] = x["plural"]
+                            value["chapter_%s_article" % language] = x["article"]
 
         for k, v in hs4_name_dict.items():
             for key, value in hs6_dict.items():
                 if key[:6] == k:
-                    language = v["lang"]
-
-                    value["hs4_%s_name" % language] = v["name"]
-                    value["hs4_%s_keywords" % language] = v["keywords"]
-                    value["hs4_%s_desc" % language] = v["desc"]
-                    value["hs4_%s_gender" % language] = v["gender"]
-                    value["hs4_%s_plural" % language] = v["plural"]
-                    value["hs4_%s_article" % language] = v["article"]
+                    for language in languages:
+                        if language in v:
+                            x = v[language]
+                            value["hs4_%s_name" % language] = x["name"]
+                            value["hs4_%s_keywords" % language] = x["keywords"]
+                            value["hs4_%s_desc" % language] = x["desc"]
+                            value["hs4_%s_gender" % language] = x["gender"]
+                            value["hs4_%s_plural" % language] = x["plural"]
+                            value["hs4_%s_article" % language] = x["article"]
 
         for k, v in hs6_name_dict.items():
             for key, value in hs6_dict.items():
                 if key == k:
-                    language = v["lang"]
-
-                    value["hs6_%s_name" % language] = v["name"]
-                    value["hs6_%s_keywords" % language] = v["keywords"]
-                    value["hs6_%s_desc" % language] = v["desc"]
-                    value["hs6_%s_gender" % language] = v["gender"]
-                    value["hs6_%s_plural" % language] = v["plural"]
-                    value["hs6_%s_article" % language] = v["article"]
+                    for language in languages:
+                        if language in v:
+                            x = v[language]
+                            value["hs6_%s_name" % language] = x["name"]
+                            value["hs6_%s_keywords" % language] = x["keywords"]
+                            value["hs6_%s_desc" % language] = x["desc"]
+                            value["hs6_%s_gender" % language] = x["gender"]
+                            value["hs6_%s_plural" % language] = x["plural"]
+                            value["hs6_%s_article" % language] = x["article"]
 
         final_df = pd.DataFrame()
 
@@ -138,7 +141,9 @@ class TransformStep(PipelineStep):
         index = 0
 
         for _, row in df.iterrows():
-            d[row[id_column]] = h[index]
+            if not row[id_column] in d:
+                d[row[id_column]] = {}
+            d[row[id_column]][h[index]["lang"]] = h[index]
             index += 1
 
         return d
@@ -170,5 +175,5 @@ def start_pipeline(params):
 
 
 if __name__ == "__main__":
-    for year in ["92", "96", "02", "07"]:
+    for year in ["92"]:
         start_pipeline({"year": year, "class_name": "hs%s" % year})
