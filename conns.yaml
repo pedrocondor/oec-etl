@@ -5,3 +5,7 @@ monetdb-oec:
 mit-oec:
   driver: bamboo_lib.connectors.drivers.postgres.PostgresDriver
   uri: postgres://$ORIGINAL_OEC_DB_USER:$ORIGINAL_OEC_DB_PASSWORD@$ORIGINAL_OEC_DB_HOST/$ORIGINAL_OEC_DB_NAME
+
+hs-data:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/baci<year>_2016.zip

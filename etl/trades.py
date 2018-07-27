@@ -1,23 +1,31 @@
 import os
+import zipfile
 
-import pymysql
 import pandas as pd
-
+from bamboo_lib.connectors.models import Connector
 from bamboo_lib.logger import logger
 from bamboo_lib.models import PipelineStep, ComplexPipelineExecutor
 from bamboo_lib.steps import LoadStep
-from bamboo_lib.connectors.models import Connector
+
+
+class DownloadStep(PipelineStep):
+    def run_step(self, prev_result, params):
+        return self.connector.download(params=params)
 
 
 class ExtractStep(PipelineStep):
-    def run_step(self, df, params):
-        class_name = params["class_name"]
+    def run_step(self, prev_result, params):
+        downloaded_file = prev_result
+
+        zip_ref = zipfile.ZipFile(downloaded_file, "r")
+        zip_ref.extractall("data")
+        zip_ref.close()
 
         return pd.read_csv(
             os.path.join(
                 os.environ.get("OEC_BASE_DIR"),
                 "data",
-                "%s_2016.csv" % class_name
+                "baci%s_2016.csv" % params["year"]
             ),
             dtype={"hs6": object, "i": object, "j": object}
         )
@@ -40,15 +48,8 @@ class TransformStep(PipelineStep):
 
 
 def start_pipeline(params):
-    conn = pymysql.connect(
-        host=os.environ.get("ORIGINAL_OEC_DB_HOST"),
-        user=os.environ.get("ORIGINAL_OEC_DB_USER"),
-        passwd=os.environ.get("ORIGINAL_OEC_DB_PASSWORD"),
-        db=os.environ.get("ORIGINAL_OEC_DB_NAME"),
-        port=int(os.environ.get("ORIGINAL_OEC_DB_PORT"))
-    )
-
     conn_path = os.path.join(os.environ.get("OEC_BASE_DIR"), "conns.yaml")
+    conn = Connector.fetch("hs-data", open(conn_path))
     monetdb_oec_conn = Connector.fetch("monetdb-oec", open(conn_path))
 
     schema_name = "%s_yearly_data" % params["class_name"]
@@ -61,7 +62,8 @@ def start_pipeline(params):
         "import_val": "DECIMAL"
     }
 
-    extract_step = ExtractStep(connector=conn)
+    download_step = DownloadStep(connector=conn)
+    extract_step = ExtractStep()
     transform_step = TransformStep()
     load_step = LoadStep(
         schema_name, monetdb_oec_conn, index=True, schema="oec", dtype=dtype
@@ -70,7 +72,7 @@ def start_pipeline(params):
     logger.info("* OEC - %s pipeline starting..." % schema_name)
 
     pp = ComplexPipelineExecutor(params)
-    pp = pp.next(extract_step).next(transform_step).next(load_step)
+    pp = pp.next(download_step).next(extract_step).next(transform_step).next(load_step)
     pp.run_pipeline()
 
 
