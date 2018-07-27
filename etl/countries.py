@@ -65,9 +65,9 @@ class TransformStep(PipelineStep):
 
             for _, r in continent_names_df.iterrows():
                 countries_df.loc[match, "%s_continent_name" % r["lang"]] = r["name"]
-                countries_df.loc[match, "%s_continent_name" % r["lang"]] = r["gender"]
-                countries_df.loc[match, "%s_continent_name" % r["lang"]] = r["plural"]
-                countries_df.loc[match, "%s_continent_name" % r["lang"]] = r["article"]
+                countries_df.loc[match, "%s_continent_gender" % r["lang"]] = r["gender"]
+                countries_df.loc[match, "%s_continent_plural" % r["lang"]] = r["plural"]
+                countries_df.loc[match, "%s_continent_article" % r["lang"]] = r["article"]
 
         # populate language data
         for _, row in country_name_df.iterrows():
