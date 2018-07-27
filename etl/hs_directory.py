@@ -173,5 +173,5 @@ def start_pipeline(params):
 
 
 if __name__ == "__main__":
-    for year in ["92", "96", "02", "07"]:
+    for year in ["92"]:
         start_pipeline({"year": year, "class_name": "hs%s" % year})

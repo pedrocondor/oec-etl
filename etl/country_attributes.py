@@ -11,20 +11,31 @@ from bamboo_lib.connectors.models import Connector
 
 class ExtractStep(PipelineStep):
     def run_step(self, df, params):
-        return pd.read_sql_query(
+        attributes_df = pd.read_sql_query(
             "SELECT * FROM attr_yo", self.connector
         )
+        countries_df = pd.read_sql_query(
+            "SELECT * FROM attr_country", self.connector
+        )
+        return attributes_df, countries_df
 
 
 class TransformStep(PipelineStep):
-    def run_step(self, df, params):
+    def run_step(self, prev_result, params):
+        attributes_df, countries_df = prev_result
+
         columns = [
             "neci", "opp_value", "magic", "pc_constant", "pc_current",
             "notpc_constant"
         ]
-        df.drop(columns, axis=1, inplace=True)
+        attributes_df.drop(columns, axis=1, inplace=True)
 
-        return df
+        for index, row in attributes_df.iterrows():
+            match = countries_df.loc[countries_df["id"] == row["origin_id"]]
+            attributes_df.loc[index, "continent_id"] = row["origin_id"][:2]
+            attributes_df.loc[index, "origin_id"] = match.iloc[0]["id_num"]
+
+        return attributes_df
 
 
 def start_pipeline():
