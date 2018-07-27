@@ -13,43 +13,35 @@ class ExtractStep(PipelineStep):
     def run_step(self, df, params):
         class_name = params["class_name"]
 
-        params["%s_df" % class_name] = pd.read_sql_query(
+        df = pd.read_sql_query(
             "SELECT * FROM attr_%s LIMIT 500" % class_name, self.connector
         )
-        params["%s_name_df" % class_name] = pd.read_sql_query(
+        name_df = pd.read_sql_query(
             "SELECT * FROM attr_%s_name" % class_name, self.connector
         )
 
-        return df
+        return df, name_df
 
 
 class TransformStep(PipelineStep):
-    def run_step(self, df, params):
+    def run_step(self, prev_result, params):
         class_name = params["class_name"]
 
-        original_df = params["%s_df" % class_name]
-        original_name_df = params["%s_name_df" % class_name]
+        df, name_df = prev_result
 
-        chapter_dict = self.get_dict(original_df.loc[original_df["id"].str.len() == 2])
-        hs4_dict = self.get_dict(original_df.loc[original_df["id"].str.len() == 6])
-        hs6_dict = self.get_dict(original_df.loc[original_df["id"].str.len() == 8])  # this will be the final df
+        chapter_dict = self.df_to_dict(df.loc[df["id"].str.len() == 2])
+        hs4_dict = self.df_to_dict(df.loc[df["id"].str.len() == 6])
+        # this next dict will be converted into the final df
+        hs6_dict = self.df_to_dict(df.loc[df["id"].str.len() == 8])
 
+        # the hs92 table contains image and palette information
+        # not all products have that information, but if they don't we want to
+        # try to populate these columns based on the parent classification row
         if class_name == "hs92":
-            for k, v in hs6_dict.items():
-                for key, value in v.items():
-                    if key in ["image_author", "image_link", "palette"] and value is None:
-                        hs4 = hs4_dict[k[:6]]
+            hs6_dict = self.populate_image_info(chapter_dict, hs4_dict, hs6_dict)
 
-                        v[key] = hs4[key]
-
-                for key, value in v.items():
-                    if key in ["image_author", "image_link", "palette"] and value is None:
-                        chapter = chapter_dict[k[:2]]
-
-                        v[key] = chapter[key]
-
-        # Add extra columns
-        languages = original_name_df["lang"].unique()
+        # add extra columns
+        languages = name_df["lang"].unique()
 
         for key, value in hs6_dict.items():
             for language in languages:
@@ -69,10 +61,71 @@ class TransformStep(PipelineStep):
         # Name stuff
         id_column = "%s_id" % class_name
 
-        chapter_name_dict = self.get_name_dict(original_name_df.loc[original_name_df[id_column].str.len() == 2], id_column)
-        hs4_name_dict = self.get_name_dict(original_name_df.loc[original_name_df[id_column].str.len() == 6], id_column)
-        hs6_name_dict = self.get_name_dict(original_name_df.loc[original_name_df[id_column].str.len() == 8], id_column)
+        chapter_name_dict = self.df_to_dict(
+            name_df.loc[name_df[id_column].str.len() == 2], id_column
+        )
+        hs4_name_dict = self.df_to_dict(
+            name_df.loc[name_df[id_column].str.len() == 6], id_column
+        )
+        hs6_name_dict = self.df_to_dict(
+            name_df.loc[name_df[id_column].str.len() == 8], id_column
+        )
 
+        hs6_dict = self.populate_language_info(
+            chapter_name_dict, hs4_name_dict, hs6_name_dict, hs6_dict, languages
+        )
+
+        final_df = pd.DataFrame()
+
+        for _, value in hs6_dict.items():
+            df = pd.DataFrame(value, index=[0])
+            final_df = final_df.append(df, sort=False)
+
+        return final_df
+
+    @staticmethod
+    def df_to_dict(df, id_column=None):
+        """ Helper method to convert a dataframe into a dictionary for optimal
+        access and update.
+        If this method receives the `id_column` argument, it means it's trying
+        to convert a name dict, which contains language information. Therefore
+        the conversion happens differently. """
+        d = dict()
+        h = df.to_dict(orient="records")
+
+        index = 0
+
+        for _, row in df.iterrows():
+            if id_column:
+                if not row[id_column] in d:
+                    d[row[id_column]] = {}
+                d[row[id_column]][h[index]["lang"]] = h[index]
+            else:
+                d[row["id"]] = h[index]
+            index += 1
+
+        return d
+
+    @staticmethod
+    def populate_image_info(chapter_dict, hs4_dict, hs6_dict):
+        for k, v in hs6_dict.items():
+            for key, value in v.items():
+                if key in ["image_author", "image_link", "palette"] and value is None:
+                    chapter = chapter_dict[k[:2]]
+
+                    v[key] = chapter[key]
+
+            for key, value in v.items():
+                if key in ["image_author", "image_link", "palette"] and value is None:
+                    hs4 = hs4_dict[k[:6]]
+
+                    v[key] = hs4[key]
+
+        return hs6_dict
+
+    @staticmethod
+    def populate_language_info(chapter_name_dict, hs4_name_dict, hs6_name_dict,
+                               hs6_dict, languages):
         for k, v in chapter_name_dict.items():
             for key, value in hs6_dict.items():
                 if key[:2] == k:
@@ -112,41 +165,7 @@ class TransformStep(PipelineStep):
                             value["hs6_%s_plural" % language] = x["plural"]
                             value["hs6_%s_article" % language] = x["article"]
 
-        final_df = pd.DataFrame()
-
-        for _, value in hs6_dict.items():
-            df = pd.DataFrame(value, index=[0])
-            final_df = final_df.append(df, sort=False)
-
-        return final_df
-
-    @staticmethod
-    def get_dict(df):
-        d = dict()
-        h = df.to_dict(orient="records")
-
-        index = 0
-
-        for _, row in df.iterrows():
-            d[row["id"]] = h[index]
-            index += 1
-
-        return d
-
-    @staticmethod
-    def get_name_dict(df, id_column):
-        d = dict()
-        h = df.to_dict(orient="records")
-
-        index = 0
-
-        for _, row in df.iterrows():
-            if not row[id_column] in d:
-                d[row[id_column]] = {}
-            d[row[id_column]][h[index]["lang"]] = h[index]
-            index += 1
-
-        return d
+        return hs6_dict
 
 
 def start_pipeline(params):
