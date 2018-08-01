@@ -54,14 +54,20 @@ class TransformStep(PipelineStep):
         df = df.sort_values(product_id_column)
 
         dic = dict()
-        count = -1
+        # Sorting the dataframe messes up the indexes, so we need a separate
+        # count
+        count = 0
         prev_product_class = "0"
-        columns = ["year", product_id_column, "origin_id", "destination_id", "export_val", "import_val"]
+        columns = [
+            "year", product_id_column, "origin_id", "destination_id",
+            "export_val", "import_val"
+        ]
 
         for _, row in df.iterrows():
-            count += 1
             current_product_class = row[product_id_column][0]
 
+            # This allows the data injection to happen in parts, instead of
+            # trying to uploads ~10 million rows all at once
             if current_product_class != prev_product_class:
                 data = list(dic.values())
                 final_df = pd.DataFrame(data, columns=columns)
@@ -71,37 +77,28 @@ class TransformStep(PipelineStep):
 
                 yield final_df
 
-            if count % 100000 == 0 and count != 0:
+            if count % 500000 == 0 and count != 0:
                 logging.info("added %f million rows so far" % round((count / 1000000.0), 2))
 
-            key = self._get_key(row, product_id_column)
-            reverse_key = self._get_reverse_key(row, product_id_column)
+            pod_key = self._get_pod_key(row, product_id_column)
+            pdo_key = self._get_pdo_key(row, product_id_column)
 
             trade_val = round(float(row["trade_val"]) * 1000, 2)
 
-            try:
-                dic[key]["export_val"] = trade_val
-            except KeyError:
-                dic[key] = {
-                    "year": row["year"],
-                    "origin_id": row["origin_id"],
-                    "destination_id": row["destination_id"],
-                    product_id_column: row[product_id_column],
-                    "export_val": trade_val,
-                    "import_val": np.NaN
-                }
+            for key in [pod_key, pdo_key]:
+                try:
+                    dic[pod_key]["export_val"] = trade_val
+                except KeyError:
+                    dic[pod_key] = {
+                        "year": row["year"],
+                        "origin_id": row["origin_id"] if key == pod_key else row["destination_id"],
+                        "destination_id": row["destination_id"] if key == pod_key else row["origin_id"],
+                        product_id_column: row[product_id_column],
+                        "export_val": trade_val if key == pod_key else np.NaN,
+                        "import_val": np.NaN if key == pod_key else trade_val
+                    }
 
-            try:
-                dic[reverse_key]["import_val"] = trade_val
-            except KeyError:
-                dic[reverse_key] = {
-                    "year": row["year"],
-                    "origin_id": row["destination_id"],
-                    "destination_id": row["origin_id"],
-                    product_id_column: row[product_id_column],
-                    "export_val": np.NaN,
-                    "import_val": trade_val
-                }
+            count += 1
 
         data = list(dic.values())
         final_df = pd.DataFrame(data, columns=columns)
@@ -109,11 +106,11 @@ class TransformStep(PipelineStep):
         yield final_df
 
     @staticmethod
-    def _get_key(row, col_name):
+    def _get_pod_key(row, col_name):
         return "%s-%s-%s" % (row[col_name], row["origin_id"], row["destination_id"])
 
     @staticmethod
-    def _get_reverse_key(row, col_name):
+    def _get_pdo_key(row, col_name):
         return "%s-%s-%s" % (row[col_name], row["destination_id"], row["origin_id"])
 
 
@@ -150,5 +147,5 @@ def start_pipeline(params):
 
 
 if __name__ == "__main__":
-    for year in ["92"]:
+    for year in ["92", "96", "02", "07"]:
         start_pipeline({"year": year, "class_name": "hs%s" % year})
