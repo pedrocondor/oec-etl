@@ -1,6 +1,8 @@
+import logging
 import os
 import zipfile
 
+import numpy as np
 import pandas as pd
 from bamboo_lib.connectors.models import Connector
 from bamboo_lib.logger import logger
@@ -10,16 +12,20 @@ from bamboo_lib.steps import LoadStep
 
 class DownloadStep(PipelineStep):
     def run_step(self, prev_result, params):
-        return self.connector.download(params=params)
+        if not os.path.isfile(params["file_path"]):
+            return self.connector.download(params=params)
+
+        return None
 
 
 class ExtractStep(PipelineStep):
     def run_step(self, prev_result, params):
-        downloaded_file = prev_result
+        if not os.path.isfile(params["file_path"]):
+            downloaded_file = prev_result
 
-        zip_ref = zipfile.ZipFile(downloaded_file, "r")
-        zip_ref.extractall("data")
-        zip_ref.close()
+            zip_ref = zipfile.ZipFile(downloaded_file, "r")
+            zip_ref.extractall("data")
+            zip_ref.close()
 
         return pd.read_csv(
             os.path.join(
@@ -27,24 +33,88 @@ class ExtractStep(PipelineStep):
                 "data",
                 "baci%s_2016.csv" % params["year"]
             ),
-            dtype={"hs6": object, "i": object, "j": object}
+            dtype={"t": object, "hs6": object, "v": object, "q": object}
         )
 
 
 class TransformStep(PipelineStep):
     def run_step(self, df, params):
+        product_id_column = "%s_id" % params["class_name"]
+
+        df.drop("q", axis=1, inplace=True)
+
         df.rename(
             columns={
                 "t": "year", "i": "origin_id", "j": "destination_id",
-                "hs6": "%s_id" % params["class_name"], "v": "export_val",
-                "q": "import_val"
+                "hs6": product_id_column, "v": "trade_val",
             },
             inplace=True
         )
 
-        df[["export_val", "import_val"]] = df[["export_val", "import_val"]].apply(lambda x: x * 1000).round(2)
+        df = df.sort_values(product_id_column)
 
-        return df
+        dic = dict()
+        count = -1
+        prev_product_class = "0"
+        columns = ["year", product_id_column, "origin_id", "destination_id", "export_val", "import_val"]
+
+        for _, row in df.iterrows():
+            count += 1
+            current_product_class = row[product_id_column][0]
+
+            if current_product_class != prev_product_class:
+                data = list(dic.values())
+                final_df = pd.DataFrame(data, columns=columns)
+
+                dic = dict()
+                prev_product_class = current_product_class
+
+                yield final_df
+
+            if count % 100000 == 0 and count != 0:
+                logging.info("added %f million rows so far" % round((count / 1000000.0), 2))
+
+            key = self._get_key(row, product_id_column)
+            reverse_key = self._get_reverse_key(row, product_id_column)
+
+            trade_val = round(float(row["trade_val"]) * 1000, 2)
+
+            try:
+                dic[key]["export_val"] = trade_val
+            except KeyError:
+                dic[key] = {
+                    "year": row["year"],
+                    "origin_id": row["origin_id"],
+                    "destination_id": row["destination_id"],
+                    product_id_column: row[product_id_column],
+                    "export_val": trade_val,
+                    "import_val": np.NaN
+                }
+
+            try:
+                dic[reverse_key]["import_val"] = trade_val
+            except KeyError:
+                dic[reverse_key] = {
+                    "year": row["year"],
+                    "origin_id": row["destination_id"],
+                    "destination_id": row["origin_id"],
+                    product_id_column: row[product_id_column],
+                    "export_val": np.NaN,
+                    "import_val": trade_val
+                }
+
+        data = list(dic.values())
+        final_df = pd.DataFrame(data, columns=columns)
+
+        yield final_df
+
+    @staticmethod
+    def _get_key(row, col_name):
+        return "%s-%s-%s" % (row[col_name], row["origin_id"], row["destination_id"])
+
+    @staticmethod
+    def _get_reverse_key(row, col_name):
+        return "%s-%s-%s" % (row[col_name], row["destination_id"], row["origin_id"])
 
 
 def start_pipeline(params):
@@ -56,11 +126,14 @@ def start_pipeline(params):
 
     dtype = {
         "hs6": "VARCHAR(6)",
-        "origin_id": "VARCHAR(3)",
-        "destination_id": "VARCHAR(3)",
         "export_val": "DECIMAL",
         "import_val": "DECIMAL"
     }
+    params["file_path"] = os.path.join(
+        os.environ.get("OEC_BASE_DIR"),
+        "data",
+        "baci%s_2016.csv" % params["year"]
+    )
 
     download_step = DownloadStep(connector=conn)
     extract_step = ExtractStep()
@@ -72,10 +145,10 @@ def start_pipeline(params):
     logger.info("* OEC - %s pipeline starting..." % schema_name)
 
     pp = ComplexPipelineExecutor(params)
-    pp = pp.next(download_step).next(extract_step).next(transform_step).next(load_step)
+    pp = pp.next(download_step).next(extract_step).foreach(transform_step).next(load_step).endeach()
     pp.run_pipeline()
 
 
 if __name__ == "__main__":
-    for year in ["92", "96", "02", "07"]:
+    for year in ["92"]:
         start_pipeline({"year": year, "class_name": "hs%s" % year})
