@@ -87,7 +87,8 @@ class TransformStep(PipelineStep):
 
             for key in [pod_key, pdo_key]:
                 try:
-                    dic[key]["export_val"] = trade_val
+                    col = "export_val" if key == pod_key else "import_val"
+                    dic[key][col] = trade_val
                 except KeyError:
                     dic[key] = {
                         "year": row["year"],
