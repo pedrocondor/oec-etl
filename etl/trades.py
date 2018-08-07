@@ -186,6 +186,8 @@ def start_pipeline(params):
 
     dtype = {
         "%s_id" % params["class_name"]: "VARCHAR(6)",
+        "origin_id": "VARCHAR(3)",
+        "destination_id": "VARCHAR(3)",
         "export_val": "DECIMAL",
         "import_val": "DECIMAL"
     }
