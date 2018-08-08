@@ -78,6 +78,10 @@ class TransformStep(PipelineStep):
             countries_df.loc[match, "%s_plural" % language] = row["plural"]
             countries_df.loc[match, "%s_article" % language] = row["article"]
 
+        country_id = countries_df["id_3char"]
+        countries_df.drop(labels=["id", "id_3char"], axis=1, inplace=True)
+        countries_df.insert(0, "country_id", country_id)
+
         return countries_df
 
 
