@@ -194,7 +194,7 @@ def start_pipeline(params):
     params["file_path"] = os.path.join(
         os.environ.get("OEC_BASE_DIR"),
         "data",
-        "baci%s_2016.csv" % params["year"]
+        "baci%s_%s.csv" % (params["hs"], params["year"])
     )
 
     download_step = DownloadStep(connector=conn)
@@ -212,5 +212,9 @@ def start_pipeline(params):
 
 
 if __name__ == "__main__":
-    for year in ["92", "96", "02", "07"]:
-        start_pipeline({"year": year, "class_name": "hs%s" % year})
+    # for year in ["92", "96", "02", "07"]:
+    for hs in ["92"]:
+        for year in ["1995", "1996", "1997", "1998", "1999", "2000", "2001", "2002",
+                     "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010",
+                     "2011", "2012", "2013", "2014", "2015"]:
+            start_pipeline({"hs": hs, "year": year, "class_name": "hs%s" % hs})

@@ -8,4 +8,4 @@ mit-oec:
 
 hs-data:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: https://storage.googleapis.com/oec-raw-data/baci<year>_2016.zip
+  uri: https://storage.googleapis.com/oec-raw-data/baci<hs>_<year>.zip
