@@ -207,14 +207,15 @@ def start_pipeline(params):
     logger.info("* OEC - %s pipeline starting..." % schema_name)
 
     pp = ComplexPipelineExecutor(params)
-    pp = pp.next(download_step).next(extract_step).foreach(transform_step).next(load_step).endeach()
+    pp = pp.next(download_step).next(extract_step).foreach(transform_step)\
+           .next(load_step).endeach()
     pp.run_pipeline()
 
 
 if __name__ == "__main__":
     # for year in ["92", "96", "02", "07"]:
     for hs in ["92"]:
-        for year in ["1995", "1996", "1997", "1998", "1999", "2000", "2001", "2002",
-                     "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010",
-                     "2011", "2012", "2013", "2014", "2015"]:
+        for year in ["1995", "1996", "1997", "1998", "1999", "2000", "2001",
+                     "2002", "2003", "2004", "2005", "2006", "2007", "2008",
+                     "2009", "2010", "2011", "2012", "2013", "2014", "2015"]:
             start_pipeline({"hs": hs, "year": year, "class_name": "hs%s" % hs})
