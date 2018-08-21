@@ -104,7 +104,7 @@ class TransformStep(PipelineStep):
 
         df.rename(
             columns={
-                "t": "year", "i": "origin_id", "j": "destination_id",
+                "t": "Year", "i": "origin_id", "j": "destination_id",
                 "hs6": product_id_column, "v": "trade_val",
             },
             inplace=True
@@ -118,7 +118,7 @@ class TransformStep(PipelineStep):
         count = 0
         prev_product_class = "0"
         columns = [
-            "year", product_id_column, "origin_id", "destination_id",
+            "Year", product_id_column, "origin_id", "destination_id",
             "export_val", "import_val"
         ]
 
@@ -153,7 +153,7 @@ class TransformStep(PipelineStep):
                     dic[key][col] = trade_val
                 except KeyError:
                     dic[key] = {
-                        "year": row["year"],
+                        "Year": row["Year"],
                         "origin_id": origin_id if key == pod_key else destination_id,
                         "destination_id": destination_id if key == pod_key else origin_id,
                         product_id_column: row[product_id_column],
