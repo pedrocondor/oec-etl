@@ -1,6 +1,6 @@
-# Canada Sub-National Data
+# Canadian Sub-National Trade Data
 
-Canadian International Merchandise Trade Database (CIMT) provide detailed trade data using 6 digit Harmonized System (HS) classification of goods.  
+Canadian International Merchandise Trade Database (CIMT) provide sub-national import/export data.  
 
 Product resolution : 6 digit HS classification  
 
