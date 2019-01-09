@@ -1,12 +1,16 @@
 # Canada Sub-National Data
 
-Lorem ipsum.
+Canadian International Merchandise Trade Database (CIMT) provide detailed trade data using 6 digit Harmonized System (HS) classification of goods.  
 
-## Instructions
+Product resolution : 6 digit HS classification  
 
-1. Go to `https://somewebsite.com`
-2. ...
-3. surprise
-4. surprise 2
-5. surprise 3
-6. surprise 4
+Spatial resoultion : Province  
+
+Frequency : Monthly
+
+Starting Year : 1992
+
+
+## Download 
+	1. CIMT  
+	`https://open.canada.ca/data/en/dataset?sort=metadata_modified+desc&q=CIMT&organization=statcan`
