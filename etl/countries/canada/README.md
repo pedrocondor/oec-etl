@@ -43,4 +43,3 @@ month : Month of import/export/re-export
 	https://www5.statcan.gc.ca/cimt-cicm/page-page?lang=eng&mode=concepts
 	3. CIMT Export Classification
 	https://www150.statcan.gc.ca/n1/en/catalogue/65-209-X
-	4. CIMT Import Classification
