@@ -13,7 +13,7 @@ Frequency : Monthly
 Starting Year : 1997
 
 #### Sample Data
-State Level dataset is divided into two groups export and import. Both have same file structure. Table below show a sample from export data.
+State Level dataset is divided into two groups export and import. Both have same file structure. Table below show a sample from export data.  
 
  
  | CO_ANO | CO_MES | CO_NCM   | CO_UNID | CO_PAIS | SG_UF_NCM | CO_VIA | CO_URF  | QT_ESTAT | KG_LIQUIDO | VL_FOB  |
@@ -29,13 +29,13 @@ State Level dataset is divided into two groups export and import. Both have same
 CO_AND : Year  
 CO_MES : Month  
 CO_NCM : HS Code  
-CO_UNID : Statistical unit code
-CO_PAIS : Country code of destination/product origin
-SG_UF_NCM : Codes of the units of the federation (States/Federal District) of Brazil
-CO_VIA : transport code
-CO_URF : Federal Revenue Unit
-KG_LIQUIDO : Net Kilogram
-VL_FOB : FOB value in US dollar
+CO_UNID : Statistical unit code  
+CO_PAIS : Country code of destination/product origin  
+SG_UF_NCM : Codes of the units of the federation (States/Federal District) of Brazil  
+CO_VIA : transport code  
+CO_URF : Federal Revenue Unit  
+KG_LIQUIDO : Net Kilogram  
+VL_FOB : FOB value in US dollar  
 
 
 ### Dataset 2 : Municipality level data
@@ -49,7 +49,7 @@ Frequency : Monthly
 Starting Year : 1997
 
 #### Sample Data
-Municipality Level dataset is divided into two groups export and import. Both have same file structure. Table below show a sample from export data.
+Municipality Level dataset is divided into two groups export and import. Both have same file structure. Table below show a sample from export data.  
 
  
 |   | CO_ANO | CO_MES | SH4  | CO_PAIS | SG_UF_MUN | CO_MUN  | KG_LIQUIDO | VL_FOB  |
@@ -64,12 +64,12 @@ Municipality Level dataset is divided into two groups export and import. Both ha
 #### Variable Details
 CO_AND : Year  
 CO_MES : Month  
-SH4 : HS Code 
-CO_PAIS : Country code of destination/product origin
-SG_UF_MUN : Codes of the units of the federation (States/Federal District) of Brazil
-CO_MUN : Municipality code
-KG_LIQUIDO : Net Kilogram
-VL_FOB : FOB value in US dollar 
+SH4 : HS Code  
+CO_PAIS : Country code of destination/product origin  
+SG_UF_MUN : Codes of the units of the federation (States/Federal District) of Brazil  
+CO_MUN : Municipality code  
+KG_LIQUIDO : Net Kilogram  
+VL_FOB : FOB value in US dollar  
 
 
 ## Download 
