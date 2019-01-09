@@ -2,7 +2,7 @@
 
 Comex Stat Database by Ministry of Industry, Foreign Trade and Services provide Brazilian import/export data at sub-national level. Comex Stat Database contain two sub databse.  
 
-Dataset 1 : State level data
+###Dataset 1 : State level data
 
 Product resolution : 8 digit HS classification  
 
@@ -12,7 +12,7 @@ Frequency : Monthly
 
 Starting Year : 1997
 
-Dataset 2 : Municipality level data
+###Dataset 2 : Municipality level data
 
 Product resolution : 4 digit HS classification  
 
