@@ -12,6 +12,16 @@ Frequency : Monthly
 
 Starting Year : 1997
 
+Dataset 2 : Municipality level data
+
+Product resolution : 4 digit HS classification  
+
+Spatial resoultion : Municipality  
+
+Frequency : Monthly
+
+Starting Year : 1997
+
 
 ## Download 
 	1. Comex Stat Database 
