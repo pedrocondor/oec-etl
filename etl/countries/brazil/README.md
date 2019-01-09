@@ -1,6 +1,6 @@
 # Brazilian Sub-National Trade Data
 
-Comex Stat Database by Ministry of Industry, Foreign Trade and Services provide Brazilian import/export data at sub-national level. Comex Stat Database contain two sub databse.  
+Comex Stat Database by Ministry of Industry, Foreign Trade and Services provide Brazilian import/export data at sub-national level. Comex Stat Database contain two sub database.  
 
 ### Dataset 1 : State level data
 
