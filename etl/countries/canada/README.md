@@ -25,15 +25,15 @@ CIMT database is divided into three groups export, import and re-export. All thr
 | 10600   | N/A | 9            | 1000       | 1   | 702093  | 0        | 1989 | 1     |
 
 ### Variable Details
-HS.Code : Harmonized System Code
-UOM : Unit of Measurement
+HS.Code : Harmonized System Code  
+UOM : Unit of Measurement  
 Country.Code : Country code for importing/exporting/reexporting country (999 refers to the totals for the
-World)
-State.Code : 1000 for Non USA and 1001-1055 for USA states/other areas within USA
-Value : Trade value in Canadian Dollars
-Quantity : Good Quantity
-Year : Month of import/export/re-export
-month : Month of import/export/re-export
+World)  
+State.Code : 1000 for Non USA and 1001-1055 for USA states/other areas within USA  
+Value : Trade value in Canadian Dollars  
+Quantity : Goods Quantity  
+Year : Month of import/export/re-export  
+month : Month of import/export/re-export  
 
 
 ## Download 
@@ -44,4 +44,3 @@ month : Month of import/export/re-export
 	3. CIMT Export Classification
 	https://www150.statcan.gc.ca/n1/en/catalogue/65-209-X
 	4. CIMT Import Classification
-	
