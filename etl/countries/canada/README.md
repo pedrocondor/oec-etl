@@ -17,8 +17,8 @@ CIMT database is divided into three groups export, import and re-export. All thr
  
  | HS.Code | UOM | Country.Code | State.Code | Geo | Value   | Quantity | Year | month |
 |---------|-----|--------------|------------|-----|---------|----------|------|-------|
-| 10600   | N/A | 9            | 1000       | 1   | 843712  | 0        | 1988 | 1     |
-| 10600   | N/A | 9            | 1000       | 1   | 1832426 | 0        | 1988 | 4     |
+| 841381  | NMB | 154          | 1000       | 59  | 774     | 12       | 2018 | 2     |
+| 853931  | NMB | 9            | 1041       | 24  | 781300  | 556203   | 2017 | 10    |
 | 10600   | N/A | 9            | 1000       | 1   | 3806760 | 0        | 1988 | 7     |
 | 10600   | N/A | 9            | 1000       | 1   | 1183017 | 0        | 1988 | 9     |
 | 10600   | N/A | 9            | 1000       | 1   | 1185400 | 0        | 1988 | 12    |
@@ -30,10 +30,8 @@ UOM : Unit of Measurement
 Country.Code : Country code for importing/exporting/reexporting country (999 refers to the totals for the
 World)  
 State.Code : 1000 for Non USA and 1001-1055 for USA states/other areas within USA  
+Geo : 1 for Canada, other than 1 are Canadian province code  
 Value : Trade value in Canadian Dollars  
-Quantity : Goods Quantity  
-Year : Month of import/export/re-export  
-month : Month of import/export/re-export  
 
 
 ## Download 
