@@ -6,7 +6,7 @@ Source : Declarations submitted to the Customs
 
 Product Resolution : 9 Digit HS Classification
 
-Spatial Resoultion : Coustom /Port
+Spatial Resoultion : Custom / Port
 
 Frequency : Monthly
 
