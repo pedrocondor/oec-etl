@@ -29,7 +29,7 @@ Database is divided into two groups export, import. Both have same file structur
 
 ### Variable Details
 Exp or Imp : 1 for Export and 2 for import  
-Custom : Japan is divided into 9 Coustom regions which are subdivided into approximately 86 ports(this estimate is from distict values in 2017 export dataset).  
+Custom : Japan is divided into 9 Custom regions which are subdivided into approximately 86 ports(this estimate is from distict values in 2017 export dataset).  
 Country  
     1. Export : Final Destination  
     2. Import : Country of Origin  
