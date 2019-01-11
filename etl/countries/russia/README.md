@@ -26,11 +26,11 @@ Starting Year : 2015
 
 
 ### Variable Details
-Direction : Export/Import
-Period : Month/Year 
+Direction : Export/Import  
+Period : Month/Year  
 UM : Unit of measurement  
-REGION : Federal District
-REGION_S : Federal Subject
+REGION : Federal District  
+REGION_S : Federal Subject  
 
 
 ## Download 
