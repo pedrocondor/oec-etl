@@ -29,8 +29,8 @@ Starting Year : 2015
 Direction : Export/Import  
 Period : Month/Year  
 UM : Unit of measurement  
-REGION : Federal District  
-REGION_S : Federal Subject  
+REGION : Federal Subject  
+REGION_S : Federal District  
 
 
 ## Download 
