@@ -1,0 +1,12 @@
+brazil-ncm:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: http://www.mdic.gov.br/balanca/bd/comexstat-bd/ncm/<flow>_<year>.csv
+
+monetdb-oec:
+  driver: bamboo_lib.connectors.drivers.monet.MonetDriver
+  uri: monetdb://monetdb:monetdb@$localhost:50000/oec
+
+postgres-local:
+  driver: bamboo_lib.connectors.drivers.postgres.PostgresDriver
+  uri: postgres://postgres@localhost:5432/oec
+
