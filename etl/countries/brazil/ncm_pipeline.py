@@ -26,8 +26,22 @@ class TransformStep(PipelineStep):
     def run_step(self, prev, params):
         print("TRANSFORM STEP")
         df = prev
-        df["FLOW"] = params.get("flow")
-        print(df.head())
+
+        flow = {"EXP":1, "IMP":2}
+        df["FLOW"] = flow[params.get("flow")]
+        df["date_id"] = df["CO_ANO"].astype("str") + "-" + df["CO_MES"].astype("str").str.zfill(2)
+        df = df.drop(columns = {"CO_ANO","CO_MES", "CO_UNID", "CO_URF", "KG_LIQUIDO", "QT_ESTAT"})
+
+        df = df.rename(columns = {"CO_NCM": "product_id", "CO_PAIS": "country_id", "SG_UF_NCM": "state_id", 
+                                "CO_VIA": "transport_id", "VL_FOB": "fob"})
+
+        df = df[["date_id", "product_id", "country_id", "state_id", "transport_id", "fob"]]
+
+        states = pd.read_csv("http://www.mdic.gov.br/balanca/bd/tabelas/UF.csv", sep = ";", encoding="latin-1")
+        states = dict(zip(states["SG_UF"], states["CO_UF"]))
+
+        df["state_id"] = df["state_id"].map(states)
+
         return df
 
 
