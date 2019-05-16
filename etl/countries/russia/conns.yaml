@@ -1,23 +1,23 @@
 russia-trade:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: CSFT_<year>-<month>.dbf
+  uri: https://storage.googleapis.com/oec-raw-data/Russia/<year>_<month>_Export%26Import.dbf
 
 russia-meta-country:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: COUNTRY.dbf
+  uri: https://storage.googleapis.com/oec-raw-data/Russia/Supporting%20Docs/COUNTRY.dbf
 
 russia-meta-hs:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: HS.dbf
+  uri: https://storage.googleapis.com/oec-raw-data/Russia/Supporting%20Docs/HS.dbf
 
 russia-meta-unit-of-measure:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: Unit_of_Measure.dbf
+  uri: https://storage.googleapis.com/oec-raw-data/Russia/Supporting%20Docs/Unit_of_Measure.dbf
 
 russia-meta-region:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: The_subject_of_The_Russian_Federation.dbf
+  uri: https://storage.googleapis.com/oec-raw-data/Russia/Supporting%20Docs/The_subject_of_The_Russian_Federation.dbf
 
 russia-meta-district:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: The_Federal_District.dbf
+  uri: https://storage.googleapis.com/oec-raw-data/Russia/Supporting%20Docs/The_Federal_District.dbf
