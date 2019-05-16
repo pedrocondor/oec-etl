@@ -1,0 +1,23 @@
+russia-trade:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: CSFT_<year>-<month>.dbf
+
+russia-meta-country:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: COUNTRY.dbf
+
+russia-meta-hs:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: HS.dbf
+
+russia-meta-unit-of-measure:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: Unit_of_Measure.dbf
+
+russia-meta-region:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: The_subject_of_The_Russian_Federation.dbf
+
+russia-meta-district:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: The_Federal_District.dbf
