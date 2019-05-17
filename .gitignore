@@ -12,4 +12,3 @@ etl/countries/brazil/dimension_tables/
 .DS_Store
 
 *.pyc
-*.ipynb
