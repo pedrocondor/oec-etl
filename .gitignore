@@ -3,6 +3,10 @@
 .idea/
 data/
 venv/
+mydbfarm/
+py3/
+etl/countries/brazil/data_temp/
+etl/countries/brazil/dimension_tables/
 
 .env
 .DS_Store

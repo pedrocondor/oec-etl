@@ -9,3 +9,7 @@ mit-oec:
 hs-data:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
   uri: https://storage.googleapis.com/oec-raw-data/baci<hs>_<year>.zip
+
+brazil-ncm:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: http://www.mdic.gov.br/balanca/bd/comexstat-bd/ncm/<flow>_<year>.csv
