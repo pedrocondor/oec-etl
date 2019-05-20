@@ -23,13 +23,20 @@ class ExtractStep(PipelineStep):
             'qty', 'netweight_kg', 'trade_value_us_dollars', 'flag'
         ]
 
-        df = pd.read_csv(prev, encoding='ISO-8859-1')
+        df = pd.read_csv(prev, header=0, names=names, encoding='ISO-8859-1')
 
-        print(df.loc[[0]].to_dict())
+        df['reporter_iso'] = df['reporter_iso'].fillna('')
+        df['partner_iso'] = df['partner_iso'].fillna('')
+        df['qty_unit_code'] = df['qty_unit_code'].fillna('').astype(str)
+        df['qty_unit'] = df['qty_unit'].fillna('')
 
-        # TODO commodity_code needs to be calculated somehow
+        for i, row in df.iterrows():
+            try:
+                row['commodity_code'] = int(row['commodity_code_pre'])
+            except ValueError:
+                row['commodity_code'] = 0
 
-        return None
+        return df
 
 
 class MonthlyPipeline(BasePipeline):
@@ -54,6 +61,8 @@ class MonthlyPipeline(BasePipeline):
         return [
             Parameter(label="Source connector", name="source_connector", dtype=str, source=Connector),
             Parameter(label="DB connector", name="db_connector", dtype=str, source=Connector),
+            Parameter(label="Year", name="year", dtype=str),
+            Parameter(label="Month", name="month", dtype=str),
         ]
 
     @staticmethod
@@ -61,12 +70,38 @@ class MonthlyPipeline(BasePipeline):
         source_connector = Connector.fetch(params.get("source_connector"), open("etl/conns.yaml"))
         db_connector = Connector.fetch(params.get("db_connector"), open("etl/conns.yaml"))
 
+        dtype = {
+            'classification':          'String',
+            'year':                    'UInt32',
+            'period':                  'UInt32',
+            'period_desc':             'String',
+            'aggregate_level':         'UInt8',
+            'is_leaf_code':            'UInt8',
+            'trade_flow_code':         'UInt8',
+            'trade_flow':              'String',
+            'reporter_code':           'UInt32',
+            'reporter':                'String',
+            'reporter_iso':            'String',
+            'partner_code':            'UInt32',
+            'partner':                 'String',
+            'partner_iso':             'String',
+            'commodity_code_pre':      'String',
+            'commodity':               'String',
+            'qty_unit_code':           'String',
+            'qty_unit':                'String',
+            'qty':                     'UInt64',
+            'netweight_kg':            'UInt64',
+            'trade_value_us_dollars':  'UInt64',
+            'flag':                    'UInt8',
+            'commodity_code':          'UInt32'
+        }
+
         download_data = DownloadStep(connector=source_connector)
         unzip_step = UnzipStep(pattern=r"\.csv$")
         extract_step = ExtractStep()
 
         # TODO: What are all the other options
-        # load_step = LoadStep("rus_meta_region", db_connector, if_exists="append", pk=["id"])
+        # load_step = LoadStep("oec_monthly", db_connector, if_exists="append", pk=["id"])
 
         pp = AdvancedPipelineExecutor(params)
         pp = pp.next(download_data).foreach(unzip_step).next(extract_step)#.next(load_step)
@@ -79,4 +114,6 @@ if __name__ == '__main__':
     pipeline.run({
         'source_connector': 'comtrade-monthly',
         'db_connector': 'clickhouse-remote',
+        'year': '2018',
+        'month': '10'
     })
