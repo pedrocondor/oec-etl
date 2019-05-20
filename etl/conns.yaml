@@ -4,4 +4,32 @@ clickhouse-remote:
 
 comtrade-monthly:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: https://storage.googleapis.com/oec-raw-data/comtrade_monthly/type-C_r-ALL_ps-201810_freq-M_px-HS_pub-20181214_fmt-csv_ex-20181221.zip
+  uri: https://storage.googleapis.com/oec-raw-data/comtrade_monthly/type-C_r-ALL_ps-<year><month>_freq-M_px-HS_pub-20181214_fmt-csv_ex-20181221.zip
+
+baci-yearly:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/baci/baci<hs_code>_<year>.zip
+
+wdi-country:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/wdi/WDICountry.csv
+
+wdi-country-series:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/wdi/WDICountry-Series.csv
+
+wdi-series:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/wdi/WDISeries.csv
+
+wdi-series-time:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/wdi/WDISeries-Time.csv
+
+wdi-data:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/wdi/WDIData.csv
+
+wdi-footnote:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/wdi/WDIFootNote.csv
