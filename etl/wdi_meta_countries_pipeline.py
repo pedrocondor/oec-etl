@@ -5,7 +5,6 @@ from bamboo_lib.models import BasePipeline
 from bamboo_lib.models import Parameter
 from bamboo_lib.models import PipelineStep
 from bamboo_lib.steps import LoadStep
-from bamboo_lib.steps import UnzipStep
 
 
 class DownloadStep(PipelineStep):
@@ -23,8 +22,8 @@ class ExtractStep(PipelineStep):
 
         df = pd.read_csv(prev, header=0, names=names)
 
-        df['special_notes'] = df['special_notes'].fillna('').astype(str)
-        df['wb_2_code'] = df['wb_2_code'].fillna('').astype(str)
+        for name in names:
+            df[name]= df[name].fillna('').astype(str)
 
         return df
 
@@ -72,14 +71,14 @@ class WDIMetaCountriesPipeline(BasePipeline):
         }
 
         download_data = DownloadStep(connector=source_connector)
-        unzip_step = UnzipStep(pattern=r"\.csv$")
         extract_step = ExtractStep()
-
-        # TODO: What are all the other options
-        # load_step = LoadStep("oec_wdi_meta_countries"), db_connector, if_exists="append", pk=["id"])
+        load_step = LoadStep(
+            "oec_wdi_meta_countries", db_connector, if_exists="append", dtype=dtype,
+            pk=['country_code']
+        )
 
         pp = AdvancedPipelineExecutor(params)
-        pp = pp.next(download_data).next(extract_step)#.next(load_step)
+        pp = pp.next(download_data).next(extract_step).next(load_step)
 
         return pp.run_pipeline()
 
@@ -87,6 +86,6 @@ class WDIMetaCountriesPipeline(BasePipeline):
 if __name__ == '__main__':
     pipeline = WDIMetaCountriesPipeline()
     pipeline.run({
-        'source_connector': 'wdi-series',
+        'source_connector': 'wdi-country',
         'db_connector': 'clickhouse-remote',
     })

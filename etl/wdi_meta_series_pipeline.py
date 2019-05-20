@@ -5,7 +5,6 @@ from bamboo_lib.models import BasePipeline
 from bamboo_lib.models import Parameter
 from bamboo_lib.models import PipelineStep
 from bamboo_lib.steps import LoadStep
-from bamboo_lib.steps import UnzipStep
 
 
 class DownloadStep(PipelineStep):
@@ -27,9 +26,8 @@ class ExtractStep(PipelineStep):
 
         df = pd.read_csv(prev, header=0, names=names)
 
-        df['base_period'] = df['base_period'].fillna('').astype(str)
-        df['related_source_links'] = df['related_source_links'].fillna('').astype(str)
-        df['license_type'] = df['license_type'].fillna('').astype(str)
+        for name in names:
+            df[name]= df[name].fillna('').astype(str)
 
         return df
 
@@ -87,14 +85,14 @@ class WDIMetaSeriesPipeline(BasePipeline):
         }
 
         download_data = DownloadStep(connector=source_connector)
-        unzip_step = UnzipStep(pattern=r"\.csv$")
         extract_step = ExtractStep()
-
-        # TODO: What are all the other options
-        # load_step = LoadStep("oec_wdi_meta_series"), db_connector, if_exists="append", pk=["id"])
+        load_step = LoadStep(
+            "oec_wdi_meta_series", db_connector, if_exists="append", dtype=dtype,
+            pk=['series_code']
+        )
 
         pp = AdvancedPipelineExecutor(params)
-        pp = pp.next(download_data).next(extract_step)#.next(load_step)
+        pp = pp.next(download_data).next(extract_step).next(load_step)
 
         return pp.run_pipeline()
 

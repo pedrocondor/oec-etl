@@ -1,6 +1,7 @@
 clickhouse-remote:
   driver: bamboo_lib.connectors.drivers.clickhouse.ClickhouseDriver
-  uri: clickhouse://127.0.0.1/testing
+  # TODO: Change this
+  uri: clickhouse://127.0.0.1/oec_test
 
 comtrade-monthly:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
