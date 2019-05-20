@@ -15,32 +15,21 @@ class DownloadStep(PipelineStep):
 
 class ExtractStep(PipelineStep):
     def run_step(self, prev, params):
-        names = [
-            'country_code', 'short_name', 'table_name', 'long_name',
-            'two_alpha_code', 'currency_unit', 'special_notes', 'region',
-            'income_group', 'wb_2_code'
-        ]
-
-        df = pd.read_csv(prev, header=0, names=names)
-
-        df['special_notes'] = df['special_notes'].fillna('').astype(str)
-        df['wb_2_code'] = df['wb_2_code'].fillna('').astype(str)
-
-        return df
+        return pd.read_csv(prev)
 
 
-class WDIMetaCountriesPipeline(BasePipeline):
+class YearlyMetaCountriesPipeline(BasePipeline):
     @staticmethod
     def pipeline_id():
-        return 'wdi-meta-countries-pipeline'
+        return 'baci-yearly-meta-countries-pipeline'
 
     @staticmethod
     def name():
-        return 'WDI Meta Countries Pipeline'
+        return 'BACI Yearly Meta Countries Pipeline'
 
     @staticmethod
     def description():
-        return 'Processes WDI meta countries data'
+        return 'Processes BACI yearly meta countries data'
 
     @staticmethod
     def website():
@@ -59,16 +48,14 @@ class WDIMetaCountriesPipeline(BasePipeline):
         db_connector = Connector.fetch(params.get("db_connector"), open("etl/conns.yaml"))
 
         dtype = {
-            'country_code':      'String',
-            'short_name':        'String',
-            'table_name':        'String',
-            'long_name':         'String',
-            'two_alpha_code':    'String',
-            'currency_unit':     'String',
-            'special_notes':     'String',
-            'region':            'String',
-            'income_group':      'String',
-            'wb_2_code':         'String'
+            'id':            'String',
+            'id_num':        'UInt32',
+            'iso3':          'String',
+            'iso2':          'String',
+            'continent':     'String',
+            'color':         'String',
+            'name':          'String',
+            'export_val':    'Float64'
         }
 
         download_data = DownloadStep(connector=source_connector)
@@ -76,7 +63,7 @@ class WDIMetaCountriesPipeline(BasePipeline):
         extract_step = ExtractStep()
 
         # TODO: What are all the other options
-        # load_step = LoadStep("oec_wdi_meta_countries"), db_connector, if_exists="append", pk=["id"])
+        # load_step = LoadStep("oec_yearly_meta_countries", db_connector, if_exists="append", pk=["id"])
 
         pp = AdvancedPipelineExecutor(params)
         pp = pp.next(download_data).next(extract_step)#.next(load_step)
@@ -85,8 +72,8 @@ class WDIMetaCountriesPipeline(BasePipeline):
 
 
 if __name__ == '__main__':
-    pipeline = WDIMetaCountriesPipeline()
+    pipeline = YearlyMetaCountriesPipeline()
     pipeline.run({
-        'source_connector': 'wdi-series',
+        'source_connector': 'baci-yearly-meta-countries',
         'db_connector': 'clickhouse-remote',
     })

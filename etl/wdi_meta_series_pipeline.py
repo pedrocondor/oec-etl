@@ -91,7 +91,7 @@ class WDIMetaSeriesPipeline(BasePipeline):
         extract_step = ExtractStep()
 
         # TODO: What are all the other options
-        # load_step = LoadStep("oec_wdi"), db_connector, if_exists="append", pk=["id"])
+        # load_step = LoadStep("oec_wdi_meta_series"), db_connector, if_exists="append", pk=["id"])
 
         pp = AdvancedPipelineExecutor(params)
         pp = pp.next(download_data).next(extract_step)#.next(load_step)
