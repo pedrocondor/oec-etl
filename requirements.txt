@@ -1,14 +1,14 @@
 asn1crypto==0.24.0
 atomicwrites==1.1.5
 attrs==18.1.0
-bamboo-lib==0.0.8
+bamboo-lib==0.0.13
 bcrypt==3.1.4
 certifi==2018.4.16
 cffi==1.11.5
 chardet==3.0.4
-clickhouse-driver==0.0.11
+clickhouse-driver==0.0.19
 cryptography==2.3
-data-catapult==0.0.8
+data-catapult==0.0.16
 dnspython==1.15.0
 dw-python-monetdb-async==12.0.2
 flake8==3.5.0
@@ -33,7 +33,7 @@ pytest==3.6.3
 python-dateutil==2.7.3
 python-etcd==0.4.5
 pytz==2018.5
-PyYAML==3.13
+PyYAML==5.1
 redis==2.10.6
 requests==2.19.1
 sherlock==0.3.1
