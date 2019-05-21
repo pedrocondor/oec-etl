@@ -5,7 +5,6 @@ from bamboo_lib.models import BasePipeline
 from bamboo_lib.models import Parameter
 from bamboo_lib.models import PipelineStep
 from bamboo_lib.steps import LoadStep
-from bamboo_lib.steps import UnzipStep
 
 
 class DownloadStep(PipelineStep):
@@ -15,7 +14,12 @@ class DownloadStep(PipelineStep):
 
 class ExtractStep(PipelineStep):
     def run_step(self, prev, params):
-        return pd.read_csv(prev)
+        df = pd.read_csv(prev)
+
+        # Belgium-Luxembourg pair does not have `iso2`
+        df['iso2'] = df['iso2'].fillna('').astype(str)
+
+        return df
 
 
 class YearlyMetaCountriesPipeline(BasePipeline):
@@ -59,14 +63,14 @@ class YearlyMetaCountriesPipeline(BasePipeline):
         }
 
         download_data = DownloadStep(connector=source_connector)
-        unzip_step = UnzipStep(pattern=r"\.csv$")
         extract_step = ExtractStep()
-
-        # TODO: What are all the other options
-        # load_step = LoadStep("oec_yearly_meta_countries", db_connector, if_exists="append", pk=["id"])
+        load_step = LoadStep(
+            "oec_yearly_meta_countries", db_connector, if_exists="append",
+            dtype=dtype, pk=['id_num']
+        )
 
         pp = AdvancedPipelineExecutor(params)
-        pp = pp.next(download_data).next(extract_step)#.next(load_step)
+        pp = pp.next(download_data).next(extract_step).next(load_step)
 
         return pp.run_pipeline()
 

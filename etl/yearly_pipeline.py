@@ -21,7 +21,9 @@ class ExtractStep(PipelineStep):
         ]
 
         df = pd.read_csv(prev, header=0, names=names)
+
         df['value_us_dollars'] = df['value_thou_us_dollars'] * 1000
+        df['product_category'] = df['product_category'].astype(str).apply(lambda x: x.zfill(6))
 
         return df
 
@@ -71,20 +73,30 @@ class YearlyPipeline(BasePipeline):
         unzip_step = UnzipStep(pattern=r"\.csv$")
         extract_step = ExtractStep()
 
-        # TODO: What are all the other options
-        # load_step = LoadStep("oec_yearly_{}".format(params['hs_code']), db_connector, if_exists="append", pk=["id"])
+        load_step = LoadStep(
+            "oec_yearly_{}".format(params['hs_code']), db_connector, if_exists="append", dtype=dtype,
+            pk=['exporter', 'importer', 'year'], nullable_list=['qty_tons']
+        )
 
         pp = AdvancedPipelineExecutor(params)
-        pp = pp.next(download_data).foreach(unzip_step).next(extract_step)#.next(load_step)
+        pp = pp.next(download_data).foreach(unzip_step).next(extract_step).next(load_step)
 
         return pp.run_pipeline()
 
 
 if __name__ == '__main__':
     pipeline = YearlyPipeline()
-    pipeline.run({
-        'source_connector': 'baci-yearly',
-        'db_connector': 'clickhouse-remote',
-        'hs_code': '07',
-        'year': '2016'
-    })
+
+    for hs_code in ['92', '96', '02', '07']:
+        if hs_code == '92':
+            years = list(range(1995, 2016 + 1))
+        else:
+            years = [2016]
+
+        for year in years:
+            pipeline.run({
+                'source_connector': 'baci-yearly',
+                'db_connector': 'clickhouse-remote',
+                'hs_code': hs_code,
+                'year': year
+            })

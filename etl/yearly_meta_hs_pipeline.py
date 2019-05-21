@@ -5,7 +5,6 @@ from bamboo_lib.models import BasePipeline
 from bamboo_lib.models import Parameter
 from bamboo_lib.models import PipelineStep
 from bamboo_lib.steps import LoadStep
-from bamboo_lib.steps import UnzipStep
 
 
 class DownloadStep(PipelineStep):
@@ -67,25 +66,25 @@ class YearlyMetaHSPipeline(BasePipeline):
         }
 
         download_data = DownloadStep(connector=source_connector)
-        unzip_step = UnzipStep(pattern=r"\.csv$")
         extract_step = ExtractStep()
-
-        # TODO: What are all the other options
-        # load_step = LoadStep(
-        #     "oec_yearly_meta_hs{}".format(params['hs_code']), db_connector,
-        #     if_exists="append", pk=["id"]
-        # )
+        load_step = LoadStep(
+            "oec_yearly_meta_hs{}".format(params['hs_code']), db_connector,
+            if_exists="append", dtype=dtype,
+            pk=['hs6']
+        )
 
         pp = AdvancedPipelineExecutor(params)
-        pp = pp.next(download_data).next(extract_step)#.next(load_step)
+        pp = pp.next(download_data).next(extract_step).next(load_step)
 
         return pp.run_pipeline()
 
 
 if __name__ == '__main__':
     pipeline = YearlyMetaHSPipeline()
-    pipeline.run({
-        'source_connector': 'baci-yearly-meta-hs',
-        'db_connector': 'clickhouse-remote',
-        'hs_code': '07'
-    })
+
+    for hs_code in ['92', '96', '02', '07']:
+        pipeline.run({
+            'source_connector': 'baci-yearly-meta-hs',
+            'db_connector': 'clickhouse-remote',
+            'hs_code': hs_code
+        })

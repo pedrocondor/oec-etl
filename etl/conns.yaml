@@ -1,11 +1,10 @@
 clickhouse-remote:
   driver: bamboo_lib.connectors.drivers.clickhouse.ClickhouseDriver
-  # TODO: Change this
-  uri: clickhouse://127.0.0.1/oec_test
+  uri: clickhouse://$CLICKHOUSE_URL/$CLICKHOUSE_DATABASE
 
 comtrade-monthly:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: https://storage.googleapis.com/oec-raw-data/comtrade_monthly/type-C_r-ALL_ps-<year><month>_freq-M_px-HS_pub-20181214_fmt-csv_ex-20181221.zip
+  uri: https://storage.googleapis.com/oec-raw-data/comtrade_monthly/ALL-<year>-<month>-M-HS.zip
 
 baci-yearly:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver

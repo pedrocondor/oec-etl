@@ -23,20 +23,34 @@ class ExtractStep(PipelineStep):
             'qty', 'netweight_kg', 'trade_value_us_dollars', 'flag'
         ]
 
-        df = pd.read_csv(prev, header=0, names=names, encoding='ISO-8859-1')
+        df = pd.read_csv(prev, header=0, names=names)
 
         df['reporter_iso'] = df['reporter_iso'].fillna('')
         df['partner_iso'] = df['partner_iso'].fillna('')
         df['qty_unit_code'] = df['qty_unit_code'].fillna('').astype(str)
         df['qty_unit'] = df['qty_unit'].fillna('')
 
-        for i, row in df.iterrows():
-            try:
-                row['commodity_code'] = int(row['commodity_code_pre'])
-            except ValueError:
-                row['commodity_code'] = 0
+        data = []
 
-        return df
+        for i, row in df.iterrows():
+            if row['commodity_code_pre'] == 'TOTAL':
+                continue
+
+            row_data = row.to_dict()
+
+            try:
+                row_data['commodity_code'] = int(row['commodity_code_pre'])
+            except ValueError:
+                row_data['commodity_code'] = 0
+
+            data.append(row_data)
+
+        names.append('commodity_code')
+
+        final_df = pd.DataFrame(data)
+        final_df = final_df[names]
+
+        return final_df
 
 
 class MonthlyPipeline(BasePipeline):
@@ -89,8 +103,8 @@ class MonthlyPipeline(BasePipeline):
             'commodity':               'String',
             'qty_unit_code':           'String',
             'qty_unit':                'String',
-            'qty':                     'UInt64',
-            'netweight_kg':            'UInt64',
+            'qty':                     'Float64',
+            'netweight_kg':            'Float64',
             'trade_value_us_dollars':  'UInt64',
             'flag':                    'UInt8',
             'commodity_code':          'UInt32'
@@ -99,21 +113,29 @@ class MonthlyPipeline(BasePipeline):
         download_data = DownloadStep(connector=source_connector)
         unzip_step = UnzipStep(pattern=r"\.csv$")
         extract_step = ExtractStep()
-
-        # TODO: What are all the other options
-        # load_step = LoadStep("oec_monthly", db_connector, if_exists="append", pk=["id"])
+        load_step = LoadStep(
+            "oec_monthly", db_connector, if_exists="append", dtype=dtype,
+            pk=['reporter_code', 'aggregate_level', 'trade_flow_code', 'period'],
+            nullable_list=['commodity', 'is_leaf_code', 'partner_code', 'flag']
+        )
 
         pp = AdvancedPipelineExecutor(params)
-        pp = pp.next(download_data).foreach(unzip_step).next(extract_step)#.next(load_step)
+        pp = pp.next(download_data).foreach(unzip_step).next(extract_step).next(load_step)
 
         return pp.run_pipeline()
 
 
 if __name__ == '__main__':
     pipeline = MonthlyPipeline()
-    pipeline.run({
-        'source_connector': 'comtrade-monthly',
-        'db_connector': 'clickhouse-remote',
-        'year': '2018',
-        'month': '10'
-    })
+
+    for year in range(2008, 2018 + 1):
+        for month in range(1, 12 + 1):
+            try:
+                pipeline.run({
+                    'source_connector': 'comtrade-monthly',
+                    'db_connector': 'clickhouse-remote',
+                    'year': str(year),
+                    'month': str(month)
+                })
+            except:
+                pass
