@@ -1,12 +1,35 @@
 import os
 
+from bamboo_lib.connectors.models import Connector
 from bamboo_lib.helpers import grab_connector
 from bamboo_lib.models import AdvancedPipelineExecutor
+from bamboo_lib.models import PipelineStep
 from bamboo_lib.steps import LoadStep
 
 from etl.countries.russia.shared import DownloadStep
-from etl.countries.russia.shared import ExtractStep
 from etl.countries.russia.shared import RussiaSubnationalPipeline
+
+
+DTYPE = {
+    'direction':               'String',
+    'period':                  'String',
+    'country':                 'String',
+    'hs':                      'String',
+    'unit_of_measure':         'String',
+    'value':                   'Float64',
+    'net_weight':              'Float64',
+    'qty':                     'Float64',
+    'region':                  'String',
+    'district':                'String'
+}
+
+
+class ExtractStep(PipelineStep):
+    def run_step(self, prev, params):
+        df = pd.read_csv(prev)
+        df.columns = list(DTYPE.keys())
+        # TODO: Ignore that first row?
+        return df
 
 
 class RussiaSubnationalTradePipeline(RussiaSubnationalPipeline):
@@ -21,14 +44,15 @@ class RussiaSubnationalTradePipeline(RussiaSubnationalPipeline):
 
     @staticmethod
     def run(params, **kwargs):
-        path_to_conns = os.path.join(__file__, "..")
-        source_connector = grab_connector(path_to_conns, params.get("source_connector"))
-        db_connector = grab_connector(path_to_conns, params.get("db_connector"))
+        source_connector = Connector.fetch(params.get("source_connector"), open("etl/countries/russia/conns.yaml"))
+        db_connector = Connector.fetch(params.get("db_connector"), open("etl/conns.yaml"))
 
         download_data = DownloadStep(connector=source_connector)
         extract_step = ExtractStep()
-        # TODO: What are all the other options
-        load_step = LoadStep("rus_trade", connector, if_exists="append", pk=["period"])
+        load_step = LoadStep(
+            "rus_trade", db_connector, if_exists="append", dtype=DTYPE,
+            pk=['direction', 'period', 'country', 'region', 'district', 'hs']
+        )
 
         pp = AdvancedPipelineExecutor(params)
         pp = pp.next(download_data).next(extract_step).next(load_step)
@@ -39,12 +63,23 @@ class RussiaSubnationalTradePipeline(RussiaSubnationalPipeline):
 if __name__ == '__main__':
     pipeline = RussiaSubnationalTradePipeline()
 
-    for year in [2015, 2016, 2017, 2018]:
-        for month in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']:
-            # TODO: Where to put the connector to the remote database?
-            pipeline.run({
-                'source_connector': 'russia-trade',
-                'db_connector': '',
-                'year': year,
-                'month': month
-            })
+    # for year in [2015, 2016, 2017, 2018, 2019]:
+    #     if year == 2019:
+    #         months = ['01']
+    #     else:
+    #         months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+
+    #     for month in months:
+    #         pipeline.run({
+    #             'source_connector': 'russia-trade',
+    #             'db_connector': '',
+    #             'year': year,
+    #             'month': month
+    #         })
+
+    pipeline.run({
+        'source_connector': 'russia-trade',
+        'db_connector': 'clickhouse-remote',
+        'year': '2018',
+        'month': '10'
+    })

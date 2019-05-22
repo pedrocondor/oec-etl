@@ -1,19 +1,12 @@
-from simpledbf import Dbf5
-
 from bamboo_lib.connectors.models import Connector
-from bamboo_lib.models import PipelineStep, Parameter, BasePipeline
+from bamboo_lib.models import BasePipeline
+from bamboo_lib.models import Parameter
+from bamboo_lib.models import PipelineStep
 
 
 class DownloadStep(PipelineStep):
     def run_step(self, prev_result, params):
         return self.connector.download(params=params)
-
-
-class ExtractStep(PipelineStep):
-    def run_step(self, prev, params):
-        dbf = Dbf5(prev)
-        df = dbf.to_dataframe()
-        return df
 
 
 class RussiaSubnationalPipeline(BasePipeline):
