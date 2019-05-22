@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from bamboo_lib.connectors.models import Connector
 from bamboo_lib.models import AdvancedPipelineExecutor
@@ -18,6 +19,31 @@ class ExtractStep(PipelineStep):
 
         # Belgium-Luxembourg pair does not have `iso2`
         df['iso2'] = df['iso2'].fillna('').astype(str)
+
+        manual_entries = [
+            {
+                'id': 'eubel',
+                'id_num': 56,
+                'iso3': 'bel',
+                'iso2': 'be',
+                'continent': 'eu',
+                'color': '#752277',
+                'name': 'Belgium',
+                'export_val': np.nan,
+            },
+            {
+                'id': 'eulux',
+                'id_num': 442,
+                'iso3': 'lux',
+                'iso2': 'lu',
+                'continent': 'eu',
+                'color': '#752277',
+                'name': 'Luxembourg',
+                'export_val': np.nan,
+            }
+        ]
+
+        df = df.append(pd.DataFrame(manual_entries), ignore_index=True)
 
         return df
 
@@ -66,7 +92,7 @@ class YearlyMetaCountriesPipeline(BasePipeline):
         extract_step = ExtractStep()
         load_step = LoadStep(
             "oec_yearly_meta_countries", db_connector, if_exists="append",
-            dtype=dtype, pk=['id_num']
+            dtype=dtype, pk=['id_num'], nullable_list=['export_val']
         )
 
         pp = AdvancedPipelineExecutor(params)
