@@ -10,11 +10,11 @@ baci-yearly:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
   uri: https://storage.googleapis.com/oec-raw-data/baci/baci<hs_code>_<year>.zip
 
-baci-yearly-meta-countries:
+dim-countries:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
   uri: https://storage.googleapis.com/oec-raw-data/baci/attr_countries_exports_2016_cleaned.csv
 
-baci-yearly-meta-hs:
+dim-hs:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
   uri: https://storage.googleapis.com/oec-raw-data/baci/hs<hs_code>_attr_for_cube.tsv
 
