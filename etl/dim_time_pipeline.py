@@ -40,7 +40,7 @@ class ExtractStep(PipelineStep):
     def run_step(self, prev, params):
         data = []
 
-        for year in range(2000, 2019 + 1):
+        for year in range(1995, 2019 + 1):
             for month in range(1, 12 + 1):
                 data.append({
                     'year': year,

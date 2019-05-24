@@ -7,33 +7,7 @@ from bamboo_lib.models import PipelineStep
 from bamboo_lib.steps import LoadStep
 from bamboo_lib.steps import UnzipStep
 
-
-def hs6_converter(hs6):
-    """Adds chaper information to HS6 code"""
-    leading2 = int(hs6[:2])
-    if leading2 <= 5: return "{}{}".format("01", hs6)
-    if leading2 <= 14: return "{}{}".format("02", hs6)
-    if leading2 <= 15: return "{}{}".format("03", hs6)
-    if leading2 <= 24: return "{}{}".format("04", hs6)
-    if leading2 <= 27: return "{}{}".format("05", hs6)
-    if leading2 <= 38: return "{}{}".format("06", hs6)
-    if leading2 <= 40: return "{}{}".format("07", hs6)
-    if leading2 <= 43: return "{}{}".format("08", hs6)
-    if leading2 <= 46: return "{}{}".format("09", hs6)
-    if leading2 <= 49: return "{}{}".format("10", hs6)
-    if leading2 <= 63: return "{}{}".format("11", hs6)
-    if leading2 <= 67: return "{}{}".format("12", hs6)
-    if leading2 <= 70: return "{}{}".format("13", hs6)
-    if leading2 <= 71: return "{}{}".format("14", hs6)
-    if leading2 <= 83: return "{}{}".format("15", hs6)
-    if leading2 <= 85: return "{}{}".format("16", hs6)
-    if leading2 <= 89: return "{}{}".format("17", hs6)
-    if leading2 <= 92: return "{}{}".format("18", hs6)
-    if leading2 <= 93: return "{}{}".format("19", hs6)
-    if leading2 <= 96: return "{}{}".format("20", hs6)
-    if leading2 <= 97: return "{}{}".format("21", hs6)
-    if leading2 <= 99: return "{}{}".format("22", hs6)
-    return "{}{}".format("xx", hs6)
+from etl.util import hs6_converter
 
 
 class DownloadStep(PipelineStep):
@@ -64,7 +38,7 @@ class ExtractStep(PipelineStep):
         df = df.dropna(subset=['partner_id', 'trade_value_us_dollars'])
 
         # Add chapter as prefix to each HS6 id and then turn the final id into an integer
-        df['hs6_id'] = df['commodity_id_pre'].astype(str).apply(lambda x: int(hs6_converter(x)))
+        df['hs6_id'] = df['commodity_id_pre'].astype(str).apply(lambda x: int(hs6_converter(x.zfill(6))))
 
         names.append('hs6_id')
 

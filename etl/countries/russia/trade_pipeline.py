@@ -1,5 +1,6 @@
 import os
 
+import pandas as pd
 from bamboo_lib.connectors.models import Connector
 from bamboo_lib.helpers import grab_connector
 from bamboo_lib.models import AdvancedPipelineExecutor
@@ -14,13 +15,13 @@ DTYPE = {
     'direction':               'String',
     'period':                  'String',
     'country':                 'String',
-    'hs':                      'String',
+    'hs_code':                 'UInt32',
     'unit_of_measure':         'String',
     'value':                   'Float64',
     'net_weight':              'Float64',
     'qty':                     'Float64',
-    'region':                  'String',
-    'district':                'String'
+    'region':                  'UInt16',
+    'district':                'UInt8'
 }
 
 
@@ -28,7 +29,12 @@ class ExtractStep(PipelineStep):
     def run_step(self, prev, params):
         df = pd.read_csv(prev)
         df.columns = list(DTYPE.keys())
+
         # TODO: Ignore that first row?
+        df['hs_code'] = df['hs_code'].astype(str).apply(lambda x: x[:-4]).astype(int)
+        df['region'] = df['region'].astype(str).apply(lambda x: x[:5]).astype(int)
+        df['district'] = df['district'].astype(str).apply(lambda x: x[:2]).astype(int)
+
         return df
 
 
@@ -50,8 +56,9 @@ class RussiaSubnationalTradePipeline(RussiaSubnationalPipeline):
         download_data = DownloadStep(connector=source_connector)
         extract_step = ExtractStep()
         load_step = LoadStep(
-            "rus_trade", db_connector, if_exists="append", dtype=DTYPE,
-            pk=['direction', 'period', 'country', 'region', 'district', 'hs']
+            "trade_s_rus_m_hs", db_connector, if_exists="append", dtype=DTYPE,
+            pk=['direction', 'period', 'country', 'region', 'district', 'hs_code'],
+            nullable_list=['unit_of_measure']
         )
 
         pp = AdvancedPipelineExecutor(params)

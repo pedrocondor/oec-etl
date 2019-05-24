@@ -32,9 +32,9 @@ When adding a new pipeline script, please use the following naming convention:
 
 ### Fact tables
 
-Format: `<type>_<depth>_<identifier>_<frequency>_<classification>`
+*Format*: `<type>_<depth>_<identifier>_<frequency>_<classification>`
 
-Params:
+*Params*:
 
 `type`: What the fact table represents (trade, tariffs, services, etc.).
 `depth`: `i` for international and `s` subnational data.
@@ -42,21 +42,21 @@ Params:
 `depth`: `a` for annual and `m` for monthly.
 `classification`: The classification used by this table.
 
-Examples:
+*Examples*:
 
 `trade_s_bra_a_hs` for annual Brazilian subnational trade data using the HS classification
 `trade_i_comtrade_m_hs` for monthly international Comtrade trade data using the HS classification
 
 ### Dimension tables
 
-Format: `dim_<identifier>_<dimension>`
+*Format*: `dim_<identifier>_<dimension>`
 
-Params:
+*Params*:
 
 `identifier`: For subnational data, this should be the `iso3` for the reporter country. For international data, this should say `shared`.
 `dimension`: What this dimension table actually represents.
 
-Examples:
+*Examples*:
 
 `dim_shared_countries` for a shared countries table
 `dim_rus_regions` for a Russia dimension table representing national regions

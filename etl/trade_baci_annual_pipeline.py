@@ -7,6 +7,8 @@ from bamboo_lib.models import PipelineStep
 from bamboo_lib.steps import LoadStep
 from bamboo_lib.steps import UnzipStep
 
+from etl.util import hs6_converter
+
 
 class DownloadStep(PipelineStep):
     def run_step(self, prev_result, params):
@@ -17,29 +19,29 @@ class ExtractStep(PipelineStep):
     def run_step(self, prev, params):
         names = [
             'year', 'product_category', 'exporter', 'importer',
-            'value_thou_us_dollars', 'qty_tons'
+            'trade_value_thou_us_dollars', 'qty_tons'
         ]
 
         df = pd.read_csv(prev, header=0, names=names)
 
-        df['value_us_dollars'] = df['value_thou_us_dollars'] * 1000
-        df['product_category'] = df['product_category'].astype(str).apply(lambda x: x.zfill(6))
+        df['trade_value_us_dollars'] = df['trade_value_thou_us_dollars'] * 1000
+        df['product_category'] = df['product_category'].astype(str).apply(lambda x: int(hs6_converter(x.zfill(6))))
 
         return df
 
 
-class YearlyPipeline(BasePipeline):
+class BACIAnnualTradePipeline(BasePipeline):
     @staticmethod
     def pipeline_id():
-        return 'baci-yearly-pipeline'
+        return 'baci-annual-trade-pipeline'
 
     @staticmethod
     def name():
-        return 'BACI Yearly Pipeline'
+        return 'BACI Annual Trade Pipeline'
 
     @staticmethod
     def description():
-        return 'Processes BACI yearly data'
+        return 'Processes BACI annual trade data'
 
     @staticmethod
     def website():
@@ -61,12 +63,12 @@ class YearlyPipeline(BasePipeline):
 
         dtype = {
             'year': 'UInt32',
-            'product_category': 'String',
+            'product_category': 'UInt32',
             'exporter': 'UInt32',
             'importer': 'UInt32',
-            'value_thou_us_dollars': 'Float64',
+            'trade_value_thou_us_dollars': 'Float64',
+            'trade_value_us_dollars': 'Float64',
             'qty_tons': 'Float64',
-            'value_us_dollars': 'Float64'
         }
 
         download_data = DownloadStep(connector=source_connector)
@@ -74,7 +76,7 @@ class YearlyPipeline(BasePipeline):
         extract_step = ExtractStep()
 
         load_step = LoadStep(
-            "oec_yearly_{}".format(params['hs_code']), db_connector, if_exists="append", dtype=dtype,
+            "trade_i_cepii_a_{}".format(params['hs_code']), db_connector, if_exists="append", dtype=dtype,
             pk=['exporter', 'importer', 'year'], nullable_list=['qty_tons']
         )
 
@@ -85,7 +87,7 @@ class YearlyPipeline(BasePipeline):
 
 
 if __name__ == '__main__':
-    pipeline = YearlyPipeline()
+    pipeline = BACIAnnualTradePipeline()
 
     for hs_code in ['92', '96', '02', '07']:
         if hs_code == '92':

@@ -1,6 +1,6 @@
 russia-trade:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: https://storage.googleapis.com/oec-raw-data/Russia/<year>_<month>_Export%26Import.csv
+  uri: https://storage.googleapis.com/oec-raw-data/Russia/<year>_<month>_Export%2BImport.csv
 
 russia-meta-country:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
