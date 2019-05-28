@@ -76,7 +76,7 @@ class BACIAnnualTradePipeline(BasePipeline):
         extract_step = ExtractStep()
 
         load_step = LoadStep(
-            "trade_i_cepii_a_{}".format(params['hs_code']), db_connector, if_exists="append", dtype=dtype,
+            "trade_i_baci_a_{}".format(params['hs_code']), db_connector, if_exists="append", dtype=dtype,
             pk=['exporter', 'importer', 'year'], nullable_list=['qty_tons']
         )
 
