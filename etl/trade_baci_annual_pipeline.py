@@ -11,7 +11,7 @@ from etl.util import hs6_converter
 
 
 class DownloadStep(PipelineStep):
-    def run_step(self, prev_result, params):
+    def run_step(self, prev, params):
         return self.connector.download(params=params)
 
 
@@ -91,9 +91,15 @@ if __name__ == '__main__':
 
     for hs_code in ['92', '96', '02', '07']:
         if hs_code == '92':
-            years = list(range(1995, 2016 + 1))
-        else:
-            years = [2016]
+            start_year = 1995
+        elif hs_code == '96':
+            start_year = 1998
+        elif hs_code == '02':
+            start_year = 2003
+        elif hs_code == '07':
+            start_year = 2008
+
+        years = list(range(start_year, 2017 + 1))
 
         for year in years:
             pipeline.run({

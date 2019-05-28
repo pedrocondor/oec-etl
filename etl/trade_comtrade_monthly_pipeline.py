@@ -11,7 +11,7 @@ from etl.util import hs6_converter
 
 
 class DownloadStep(PipelineStep):
-    def run_step(self, prev_result, params):
+    def run_step(self, prev, params):
         return self.connector.download(params=params)
 
 
@@ -42,6 +42,7 @@ class ExtractStep(PipelineStep):
 
         names.append('hs6_id')
 
+        # TODO: Might be able to get the appropriate HS level by `commodity`
         remove_names = [
             'aggregate_level', 'classification', 'is_leaf_id',
             'commodity_id_pre', 'commodity', 'flag', 'period_desc',
@@ -127,7 +128,7 @@ if __name__ == '__main__':
 
         for month in months:
             pipeline.run({
-                'source_connector': 'comtrade-monthly',
+                'source_connector': 'comtrade-monthly-trade',
                 'db_connector': 'clickhouse-remote',
                 'year': str(year),
                 'month': str(month).zfill(2)

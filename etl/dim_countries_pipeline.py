@@ -9,7 +9,7 @@ from bamboo_lib.steps import LoadStep
 
 
 class DownloadStep(PipelineStep):
-    def run_step(self, prev_result, params):
+    def run_step(self, prev, params):
         return self.connector.download(params=params)
 
 
