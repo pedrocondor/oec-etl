@@ -20,7 +20,7 @@ export CLICKHOUSE_DATABASE="oec_test"
 
 ### 3. Run an example pipeline
 
-The countries dimension pipeline is super fast to run and great way to test your setup works.
+The countries dimension pipeline is super fast to run and a great way to test that your setup works.
 
 ```commandline
 $ python etl/dim_countries_pipeline.py
@@ -45,6 +45,7 @@ When adding a new pipeline script, please use the following naming convention:
 *Examples*:
 
 `trade_s_bra_a_hs` for annual Brazilian subnational trade data using the HS classification
+
 `trade_i_comtrade_m_hs` for monthly international Comtrade trade data using the HS classification
 
 ### Dimension tables
@@ -53,10 +54,12 @@ When adding a new pipeline script, please use the following naming convention:
 
 *Params*:
 
-`identifier`: For subnational data, this should be the `iso3` for the reporter country. For international data, this should say `shared`.
-`dimension`: What this dimension table actually represents.
+`identifier`: For subnational data, this should be the `iso3` id for the reporter country. For international data, this should say `shared`.
+
+`dimension`: The name of the dimension held in this table.
 
 *Examples*:
 
 `dim_shared_countries` for a shared countries table
+
 `dim_rus_regions` for a Russia dimension table representing national regions
