@@ -14,52 +14,52 @@ $ cd oec-etl
 Use the following as a guide/template for a `.env` file:
 
 ```
-export MONETDB_OEC_HOST=
-export MONETDB_OEC_USER=
-export MONETDB_OEC_PASSWORD=
-export MONETDB_OEC_DB=
-export MONETDB_OEC_PORT=
-
-export ORIGINAL_OEC_DB_HOST=
-export ORIGINAL_OEC_DB_USER=
-export ORIGINAL_OEC_DB_PASSWORD=
-export ORIGINAL_OEC_DB_NAME=
-export ORIGINAL_OEC_DB_PORT=
-
-export OEC_BASE_DIR=/path/to/this/directory/
-
+export CLICKHOUSE_URL="127.0.0.1"
+export CLICKHOUSE_DATABASE="oec_test"
 ```
 
-### 3. Create the database
+### 3. Run an example pipeline
 
-Make sure you have MonetDB installed. Following the steps of [this tutorial](https://www.monetdb.org/Documentation/UserGuide/Tutorial) create a dbfarm and a database named `oec`
+The countries dimension pipeline is super fast to run and a great way to test that your setup works.
 
 ```commandline
-$ monetdbd create /path/to/mydbfarm
-$ monetdbd start /path/to/mydbfarm
-$ monetdb create oec
-$ monetdb release oec
-$ mclient -u monetdb -d oec
+$ python etl/dim_countries_pipeline.py
 ```
 
-Once logged in, create the appropriate schemas:
+## Naming Convention for Tables
 
-```
-sql> CREATE SCHEMA "atlas";
-sql> CREATE SCHEMA "oec";
-sql> \q
-```
+When adding a new pipeline script, please use the following naming convention:
 
-### 4. Run the pipelines
+### Fact tables
 
-To run all of the pipelines defined under `/etl`:
+*Format*: `<type>_<depth>_<identifier>_<frequency>_<classification>`
 
-```commandline
-$ python pipelines.py
-```
+*Params*:
 
-You can also choose to run each of them individually. For example:
+`type`: What the fact table represents (trade, tariffs, services, etc.).
+`depth`: `i` for international and `s` subnational data.
+`identifier`: For subnational data, this should be the `iso3` for the reporter country. For international data, this should be the organization reporting the data.
+`depth`: `a` for annual and `m` for monthly.
+`classification`: The classification used by this table.
 
-```commandline
-$ python etl/countries.py
-```
+*Examples*:
+
+`trade_s_bra_a_hs` for annual Brazilian subnational trade data using the HS classification
+
+`trade_i_comtrade_m_hs` for monthly international Comtrade trade data using the HS classification
+
+### Dimension tables
+
+*Format*: `dim_<identifier>_<dimension>`
+
+*Params*:
+
+`identifier`: For subnational data, this should be the `iso3` id for the reporter country. For international data, this should say `shared`.
+
+`dimension`: The name of the dimension held in this table.
+
+*Examples*:
+
+`dim_shared_countries` for a shared countries table
+
+`dim_rus_regions` for a Russia dimension table representing national regions

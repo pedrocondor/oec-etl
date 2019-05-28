@@ -1,0 +1,47 @@
+clickhouse-remote:
+  driver: bamboo_lib.connectors.drivers.clickhouse.ClickhouseDriver
+  uri: clickhouse://$CLICKHOUSE_URL/$CLICKHOUSE_DATABASE
+
+comtrade-monthly-trade:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/comtrade_monthly/ALL-<year>-<month>-M-HS.zip
+
+comtrade-annual-services:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/comtrade_services/ALL-<year>-A-EB02.zip
+
+baci-yearly:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/baci/baci<hs_code>_<year>.zip
+
+dim-countries:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/baci/attr_countries_exports_2016_cleaned.csv
+
+dim-hs:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/baci/hs<hs_code>_attr_for_cube.tsv
+
+wdi-country:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/wdi/WDICountry.csv
+
+wdi-country-series:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/wdi/WDICountry-Series.csv
+
+wdi-series:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/wdi/WDISeries.csv
+
+wdi-series-time:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/wdi/WDISeries-Time.csv
+
+wdi-data:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/wdi/WDIData.csv
+
+wdi-footnote:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/wdi/WDIFootNote.csv
