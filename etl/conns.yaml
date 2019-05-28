@@ -2,9 +2,13 @@ clickhouse-remote:
   driver: bamboo_lib.connectors.drivers.clickhouse.ClickhouseDriver
   uri: clickhouse://$CLICKHOUSE_URL/$CLICKHOUSE_DATABASE
 
-comtrade-monthly:
+comtrade-monthly-trade:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
   uri: https://storage.googleapis.com/oec-raw-data/comtrade_monthly/ALL-<year>-<month>-M-HS.zip
+
+comtrade-annual-services:
+  driver: bamboo_lib.connectors.drivers.http.HttpDriver
+  uri: https://storage.googleapis.com/oec-raw-data/comtrade_services/ALL-<year>-A-EB02.zip
 
 baci-yearly:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
