@@ -15,30 +15,33 @@ class DownloadStep(PipelineStep):
 class ExtractStep(PipelineStep):
     def run_step(self, prev, params):
         names = [
-            'series_code', 'topic', 'indicator_name', 'short_definition',
+            'indicator_id', 'topic', 'indicator_name', 'short_definition',
             'long_definition', 'unit_of_measure', 'periodicity', 'base_period',
             'other_notes', 'aggregation_method', 'limitations_and_expectations',
             'notes_from_original_source', 'general_comments', 'source',
             'statistical_concept_and_methodology', 'development_relevance',
             'related_source_links', 'other_web_links', 'related_indicators',
-            'license_type'
+            'license_type', 'empty_column'
         ]
 
-        return pd.read_csv(prev, header=0, names=names)
+        df = pd.read_csv(prev, header=0, names=names)
+        df.drop('empty_column', axis=1, inplace=True)
+
+        return df
 
 
-class DimWDISeriesPipeline(BasePipeline):
+class DimIndicatorsPipeline(BasePipeline):
     @staticmethod
     def pipeline_id():
-        return 'wdi-series-dimension-pipeline'
+        return 'indicators-dimension-pipeline'
 
     @staticmethod
     def name():
-        return 'WDI Series Dimension Pipeline'
+        return 'Indicators Dimension Pipeline'
 
     @staticmethod
     def description():
-        return 'Processes WDI series data'
+        return 'Processes indicators data'
 
     @staticmethod
     def website():
@@ -57,7 +60,7 @@ class DimWDISeriesPipeline(BasePipeline):
         db_connector = Connector.fetch(params.get("db_connector"), open("etl/conns.yaml"))
 
         dtype = {
-            'series_code':                         'String',
+            'indicator_id':                        'String',
             'topic':                               'String',
             'indicator_name':                      'String',
             'short_definition':                    'String',
@@ -84,8 +87,8 @@ class DimWDISeriesPipeline(BasePipeline):
         download_data = DownloadStep(connector=source_connector)
         extract_step = ExtractStep()
         load_step = LoadStep(
-            "dim_shared_wdi_series", db_connector, if_exists="append", dtype=dtype,
-            pk=['series_code'],
+            "dim_shared_indicators", db_connector, if_exists="append", dtype=dtype,
+            pk=['indicator_id'],
             nullable_list=nullable_list
         )
 
@@ -96,7 +99,7 @@ class DimWDISeriesPipeline(BasePipeline):
 
 
 if __name__ == '__main__':
-    pipeline = DimWDISeriesPipeline()
+    pipeline = DimIndicatorsPipeline()
     pipeline.run({
         'source_connector': 'wdi-series',
         'db_connector': 'clickhouse-remote',
