@@ -18,14 +18,14 @@ class DownloadStep(PipelineStep):
 class ExtractStep(PipelineStep):
     def run_step(self, prev, params):
         names = [
-            'year', 'product_category', 'exporter', 'importer',
+            'year', 'hs6_id', 'exporter', 'importer',
             'trade_value_thou_us_dollars', 'qty_tons'
         ]
 
         df = pd.read_csv(prev, header=0, names=names)
 
         df['trade_value_us_dollars'] = df['trade_value_thou_us_dollars'] * 1000
-        df['product_category'] = df['product_category'].astype(str).apply(lambda x: int(hs6_converter(x.zfill(6))))
+        df['hs6_id'] = df['hs6_id'].astype(str).apply(lambda x: int(hs6_converter(x.zfill(6))))
 
         return df
 
@@ -63,7 +63,7 @@ class BACIAnnualTradePipeline(BasePipeline):
 
         dtype = {
             'year': 'UInt32',
-            'product_category': 'UInt32',
+            'hs6_id': 'UInt32',
             'exporter': 'UInt32',
             'importer': 'UInt32',
             'trade_value_thou_us_dollars': 'Float64',
