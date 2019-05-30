@@ -1,3 +1,4 @@
+import copy
 import os
 
 import pandas as pd
@@ -12,28 +13,32 @@ from etl.countries.russia.shared import RussiaSubnationalPipeline
 
 
 DTYPE = {
-    'direction':               'String',
-    'period':                  'String',
-    'country':                 'String',
-    'hs_code':                 'UInt32',
-    'unit_of_measure':         'String',
-    'value':                   'Float64',
+    'trade_flow_id':           'UInt8',
+    'time_id':                 'UInt32',
+    'country_id':              'String',
+    'hs10_id':                 'String',
+    'unit_short_name':         'String',
+    'amount':                  'Float64',
     'net_weight':              'Float64',
     'qty':                     'Float64',
-    'region':                  'UInt16',
-    'district':                'UInt8'
+    'region_id':               'String',
+    'district_id':             'String'
 }
 
 
 class ExtractStep(PipelineStep):
     def run_step(self, prev, params):
-        df = pd.read_csv(prev)
-        df.columns = list(DTYPE.keys())
+        df = pd.read_csv(prev, header=0, names=list(DTYPE.keys()))
 
-        # TODO: Ignore that first row?
-        df['hs_code'] = df['hs_code'].astype(str).apply(lambda x: x[:-4]).astype(int)
-        df['region'] = df['region'].astype(str).apply(lambda x: x[:5]).astype(int)
-        df['district'] = df['district'].astype(str).apply(lambda x: x[:2]).astype(int)
+        # Some rows don't have country information
+        df.dropna(subset=['country_id'], inplace=True)
+
+        df['trade_flow_id'] = df['trade_flow_id'].map({'IMP': 1, 'EXP': 2}).astype(int)
+        df['time_id'] = int('{}{}'.format(params['year'], params['month']))
+        df['hs10_id'] = df['hs10_id'].astype(str)
+        df['hs6_id'] = df['hs10_id'].astype(str).apply(lambda x: x[:-4])
+        df['region_id'] = df['region_id'].astype(str).apply(lambda x: x[:5])
+        df['district_id'] = df['district_id'].astype(str).apply(lambda x: x[:2])
 
         return df
 
@@ -53,12 +58,15 @@ class RussiaSubnationalTradePipeline(RussiaSubnationalPipeline):
         source_connector = Connector.fetch(params.get("source_connector"), open("etl/countries/russia/conns.yaml"))
         db_connector = Connector.fetch(params.get("db_connector"), open("etl/conns.yaml"))
 
+        dtype = copy.deepcopy(DTYPE)
+        dtype['hs6_id'] = 'String'
+
         download_data = DownloadStep(connector=source_connector)
         extract_step = ExtractStep()
         load_step = LoadStep(
-            "trade_s_rus_m_hs", db_connector, if_exists="append", dtype=DTYPE,
-            pk=['direction', 'period', 'country', 'region', 'district', 'hs_code'],
-            nullable_list=['unit_of_measure']
+            "trade_s_rus_m_hs", db_connector, if_exists="append", dtype=dtype,
+            pk=['trade_flow_id', 'time_id', 'country_id', 'region_id', 'district_id', 'hs10_id'],
+            nullable_list=['unit_short_name']
         )
 
         pp = AdvancedPipelineExecutor(params)

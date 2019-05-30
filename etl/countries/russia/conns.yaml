@@ -12,12 +12,12 @@ russia-meta-hs:
 
 russia-meta-unit-of-measure:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: https://storage.googleapis.com/oec-raw-data/Russia/Supporting%20Docs/Unit_of_Measure.csv
+  uri: https://storage.googleapis.com/oec-raw-data/Russia/Supporting%20Docs/Unit%20of%20Measure.csv
 
 russia-meta-region:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: https://storage.googleapis.com/oec-raw-data/Russia/Supporting%20Docs/The_subject_of_The_Russian_Federation.csv
+  uri: https://storage.googleapis.com/oec-raw-data/Russia/Supporting%20Docs/The%20subject%20of%20The%20Russian%20Federation.csv
 
 russia-meta-district:
   driver: bamboo_lib.connectors.drivers.http.HttpDriver
-  uri: https://storage.googleapis.com/oec-raw-data/Russia/Supporting%20Docs/The_Federal_District.csv
+  uri: https://storage.googleapis.com/oec-raw-data/Russia/Supporting%20Docs/The%20Federal%20District.csv
