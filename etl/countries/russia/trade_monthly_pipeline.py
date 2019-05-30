@@ -87,7 +87,7 @@ if __name__ == '__main__':
         for month in months:
             pipeline.run({
                 'source_connector': 'russia-trade',
-                'db_connector': '',
+                'db_connector': 'clickhouse-remote',
                 'year': year,
                 'month': month
             })
