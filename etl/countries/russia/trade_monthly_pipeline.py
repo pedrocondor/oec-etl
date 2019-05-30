@@ -78,23 +78,16 @@ class RussiaSubnationalTradePipeline(RussiaSubnationalPipeline):
 if __name__ == '__main__':
     pipeline = RussiaSubnationalTradePipeline()
 
-    # for year in [2015, 2016, 2017, 2018, 2019]:
-    #     if year == 2019:
-    #         months = ['01']
-    #     else:
-    #         months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+    for year in [2015, 2016, 2017, 2018, 2019]:
+        if year == 2019:
+            months = ['01']
+        else:
+            months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 
-    #     for month in months:
-    #         pipeline.run({
-    #             'source_connector': 'russia-trade',
-    #             'db_connector': '',
-    #             'year': year,
-    #             'month': month
-    #         })
-
-    pipeline.run({
-        'source_connector': 'russia-trade',
-        'db_connector': 'clickhouse-remote',
-        'year': '2018',
-        'month': '10'
-    })
+        for month in months:
+            pipeline.run({
+                'source_connector': 'russia-trade',
+                'db_connector': '',
+                'year': year,
+                'month': month
+            })
