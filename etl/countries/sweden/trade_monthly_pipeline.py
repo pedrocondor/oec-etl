@@ -11,12 +11,10 @@ from bamboo_lib.steps import LoadStep
 
 
 DTYPE = {
-    'hs_code':                 'UInt32',
-    'direction':               'String',
-    'partner':                 'String',
-    'partner_abbr':            'String',
-    'year':                    'UInt32',
-    'month':                   'UInt32',
+    'hs6_id':                  'UInt32',
+    'trade_flow_id':           'UInt8',
+    'partner_iso3':            'String',
+    'period_id':               'UInt32',
     'amount':                  'UInt32'
 }
 
@@ -50,12 +48,12 @@ class DownloadStep(PipelineStep):
 
 class ExtractStep(PipelineStep):
     def run_step(self, prev, params):
-        try:
-            df = pd.read_csv(prev, skiprows=2, sep='\t')
-        except UnicodeDecodeError:
-            df = pd.read_csv(prev, skiprows=2, sep='\t', encoding="ISO-8859-1")
+        # try:
+        #     df = pd.read_csv(prev, skiprows=2, sep='\t')
+        # except UnicodeDecodeError:
+        df = pd.read_csv(prev, skiprows=2, sep='\t', encoding="ISO-8859-1")
 
-        direction = "EXP" if params['direction'] == 'Export' else "IMP"
+        trade_flow_id = 2 if params['direction'] == 'Export' else 1
         year = params['year']
 
         if "07-11" in params['period']:
@@ -63,6 +61,7 @@ class ExtractStep(PipelineStep):
         elif "01-06" in params['period']:
             months = ["01", "02", "03", "04", "05", "06"]
         else:
+            # There is only on month in this period
             months = [params['period']]
 
         data = []
@@ -70,10 +69,10 @@ class ExtractStep(PipelineStep):
         for i, row in df.iterrows():
             for month in months:
                 o = {
-                    "hs_code": row["commodity group according to CN"],
-                    "direction": direction,
-                    "partner": row["trading partner"],
-                    "partner_abbr": COUNTRIES_ABBR_MAP[row["trading partner"]],
+                    "hs6_id": int(row['commodity group according to CN']),
+                    "trade_flow_id": trade_flow_id,
+                    "partner_iso3": COUNTRIES_ABBR_MAP[row["trading partner"]],
+                    'period_id': int('{}{}'.format(year, month.zfill(2)))
                 }
 
                 amount = row["{}M{}".format(year, month)]
@@ -83,8 +82,6 @@ class ExtractStep(PipelineStep):
                 except ValueError:
                     amount = "0"
 
-                o["year"] = int(year)
-                o["month"] = int(month)
                 o["amount"] = int(amount)
 
                 data.append(o)
@@ -132,7 +129,7 @@ class SwedenSubnationalTradePipeline(BasePipeline):
         extract_step = ExtractStep()
         load_step = LoadStep(
             "trade_s_swe_m_hs", db_connector, if_exists="append", dtype=DTYPE,
-            pk=['hs_code', 'direction', 'partner_abbr'],
+            pk=['hs6_id', 'trade_flow_id', 'partner_iso3'],
             nullable_list=['amount']
         )
 
@@ -142,44 +139,41 @@ class SwedenSubnationalTradePipeline(BasePipeline):
         return pp.run_pipeline()
 
 
+COUNTRIES = [
+    'alb-dza-ago-arg-aus-aut-aze',
+    'bgd-blr-bel-bol-bih-bra-bgr',
+    'cri-civ-hrv-cub-cze-dnk-dom',
+    'ecu-egy-slv-est-eth-fin-fra',
+    'gab-geo-deu-gha-grc-gtm-gin',
+    'hnd-hkg-hun-ind-idn-irn-irl',
+    'isr-ita-jam-jpn-jor-kaz-ken',
+    'khm-cmr-can-chl-chn-col-cog',
+    'kor-kwt-kgz-lao-lva-lbn-lbr',
+    'lby-ltu-mkd-mdg-mwi-mys-mli',
+    'mrt-mus-mex-mda-mng-mar-moz',
+    'nld-nzl-nic-nga-nor-omn-pak',
+    'pan-png-pry-per-phl-pol-prt',
+    'qat-rou-rus-sau-sen-srb-sgp',
+    'svk-svn-zaf-esp-lka-sdn-che',
+    'syr-tjk-tza-tha-tto-tun-tur',
+    'tkm-uga-ukr-are-gbr-usa-ury',
+    'uzb-ven-vnm-yem-zmb-zwe',
+]
+
+
 def process_collection(pipeline, year, direction, period):
     i = 0
     sub_countries = []
 
-    countries = [
-        'alb-dza-ago-arg-aus-aut-aze',
-        'bgd-blr-bel-bol-bih-bra-bgr',
-        'cri-civ-hrv-cub-cze-dnk-dom',
-        'ecu-egy-slv-est-eth-fin-fra',
-        'gab-geo-deu-gha-grc-gtm-gin',
-        'hnd-hkg-hun-ind-idn-irn-irl',
-        'isr-ita-jam-jpn-jor-kaz-ken',
-        'khm-cmr-can-chl-chn-col-cog',
-        'kor-kwt-kgz-lao-lva-lbn-lbr',
-        'lby-ltu-mkd-mdg-mwi-mys-mli',
-        'mrt-mus-mex-mda-mng-mar-moz',
-        'nld-nzl-nic-nga-nor-omn-pak',
-        'pan-png-pry-per-phl-pol-prt',
-        'qat-rou-rus-sau-sen-srb-sgp',
-        'svk-svn-zaf-esp-lka-sdn-che',
-        'syr-tjk-tza-tha-tto-tun-tur',
-        'tkm-uga-ukr-are-gbr-usa-ury',
-        'uzb-ven-vnm-yem-zmb-zwe',
-    ]
-
-    for country_collection in countries:
-            try:
-                pipeline.run({
-                    'source_connector': 'sweden-trade',
-                    'db_connector': 'clickhouse-remote',
-                    'year': year,
-                    'period': period,
-                    'direction': direction,
-                    'countries': country_collection
-                })
-            except Exception as e:
-                print('Downloading {}/{} for {} failed. File may not exist.'.format(period, year, country_collection))
-                print(e)
+    for country_collection in COUNTRIES:
+        pipeline.run({
+            'source_connector': 'sweden-trade',
+            'db_connector': 'clickhouse-remote',
+            'year': year,
+            'period': period,
+            'direction': direction,
+            'countries': country_collection
+        })
 
 
 if __name__ == '__main__':
@@ -188,19 +182,21 @@ if __name__ == '__main__':
     for year in [2018, 2019]:
         for direction in ['Export', 'Import']:
             if year == 2018:
-                for period in ['01-06', '07-11']
-                    for country in countries:
-                        pipeline.run({
-                            'source_connector': 'sweden-trade',
-                            'db_connector': 'clickhouse-remote',
-                            'year': year,
-                            'period': period,
-                            'direction': direction,
-                            'countries': country
-                        })
+                for period in ['01-06', '07-11']:
+                    for countries in COUNTRIES:
+                        for country in countries.split('-'):
+                            pipeline.run({
+                                'source_connector': 'sweden-trade',
+                                'db_connector': 'clickhouse-remote',
+                                'year': year,
+                                'period': period,
+                                'direction': direction,
+                                'countries': country
+                            })
 
                 process_collection(pipeline, year, direction, '12')
+            elif year == 2019:
+                process_collection(pipeline, year, direction, '01')
             else:
-                break
                 for period in ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']:
                     process_collection(pipeline, year, direction, period)

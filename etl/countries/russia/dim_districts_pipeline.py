@@ -12,20 +12,24 @@ from etl.countries.russia.shared import RussiaSubnationalPipeline
 
 
 DTYPE = {
-    'code': 'String',
-    'name': 'String',
-    'short_name': 'String'
+    'id':   'String',
+    'name': 'String'
 }
 
 
 class ExtractStep(PipelineStep):
     def run_step(self, prev, params):
-        df = pd.read_csv(prev)
-        df.columns = list(DTYPE.keys())
+        df = pd.read_csv(prev, header=0, names=list(DTYPE.keys()))
+
+        for col in DTYPE.keys():
+            df[col] = df[col].astype(str)
+
+        df['name'] = df['name'].str[3:]
+
         return df
 
 
-class RussiaSubnationalMetaMeasurePipeline(RussiaSubnationalPipeline):
+class DimRussiaSubnationalDistrictsPipeline(RussiaSubnationalPipeline):
     @staticmethod
     def run(params, **kwargs):
         source_connector = Connector.fetch(params.get("source_connector"), open("etl/countries/russia/conns.yaml"))
@@ -34,19 +38,18 @@ class RussiaSubnationalMetaMeasurePipeline(RussiaSubnationalPipeline):
         download_data = DownloadStep(connector=source_connector)
         extract_step = ExtractStep()
         load_step = LoadStep(
-            "rus_meta_unit_of_measure", db_connector, if_exists="append", dtype=DTYPE,
-            pk=['code', 'name', 'short_name']
+            "dim_rus_districts", db_connector, if_exists="append", dtype=DTYPE, pk=['id', 'name']
         )
 
         pp = AdvancedPipelineExecutor(params)
-        pp = pp.next(download_data).next(extract_step)#.next(load_step)
+        pp = pp.next(download_data).next(extract_step).next(load_step)
 
         return pp.run_pipeline()
 
 
 if __name__ == '__main__':
-    pipeline = RussiaSubnationalMetaMeasurePipeline()
+    pipeline = DimRussiaSubnationalDistrictsPipeline()
     pipeline.run({
-        'source_connector': 'russia-meta-unit-of-measure',
+        'source_connector': 'russia-meta-district',
         'db_connector': 'clickhouse-remote'
     })

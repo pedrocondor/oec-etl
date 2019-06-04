@@ -63,3 +63,12 @@ When adding a new pipeline script, please use the following naming convention:
 `dim_shared_countries` for a shared countries table
 
 `dim_rus_regions` for a Russia dimension table representing national regions
+
+## Example queries
+
+- [oec_trade_i_comtrade_m_hs](https://api.oec.world/tesseract/data?cube=oec_trade_i_comtrade_m_hs&measures=Trade%20Value&drilldowns=HS6&Month=12&Year=2018&Reporter%20Country=32)
+- [oec_services_i_comtrade_a_eb02](https://api.oec.world/tesseract/data?cube=oec_services_i_comtrade_a_eb02&measures=Trade%20Value&drilldowns=EB02&Year=2016&Trade%20Flow=1&Reporter%20Country=36)
+- [oec_indicators_i_wdi_a](https://api.oec.world/tesseract/data?cube=oec_indicators_i_wdi_a&measures=Value&drilldowns=Geo,Indicator,Year&Geo=bra&Year=2016)
+- [oec_trade_i_baci_a_92](https://api.oec.world/tesseract/data?cube=oec_trade_i_baci_a_92&measures=Trade%20Value&drilldowns=HS6,Year,Importer%20Country,Exporter%20Country&HS6=1010111&Importer%20Country=12)
+- [oec_trade_s_rus_m_hs](https://api.oec.world/tesseract/data?cube=oec_trade_s_rus_m_hs&measures=Trade%20Value,Quantity&drilldowns=Country,Unit,District&Trade%20Flow=1&Year=2018&Country=BR)
+- [oec_trade_s_swe_m_hs](https://api.oec.world/tesseract/data?cube=oec_trade_s_swe_m_hs&measures=Trade%20Value&drilldowns=Partner,Year&Trade%20Flow=2&Year=2018&Partner=bra)

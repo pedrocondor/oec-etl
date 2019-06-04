@@ -14,31 +14,36 @@ class DownloadStep(PipelineStep):
 
 class ExtractStep(PipelineStep):
     def run_step(self, prev, params):
-        names = [
-            'country_code', 'short_name', 'table_name', 'long_name',
-            'two_alpha_code', 'currency_unit', 'special_notes', 'region',
-            'income_group', 'wb_2_code'
-        ]
+        df = pd.read_csv(prev)
 
-        df = pd.read_csv(prev, header=0, names=names)
+        data = []
 
-        # TODO: Deal with new columns in the original file now
+        for i, row in df.iterrows():
+            for year in range(1960, 2018):
+                data.append({
+                    'geo_id': row['Country Code'].lower(),
+                    'indicator_id': row['Indicator Code'],
+                    'year': year,
+                    'mea': row[str(year)],
+                })
 
-        return df
+        final_df = pd.DataFrame(data)
+
+        return final_df
 
 
-class DimWDICountriesPipeline(BasePipeline):
+class WDIAnnualIndicatorsPipeline(BasePipeline):
     @staticmethod
     def pipeline_id():
-        return 'wdi-countries-dimension-pipeline'
+        return 'wdi-annual-indicators-pipeline'
 
     @staticmethod
     def name():
-        return 'WDI Countries Dimension Pipeline'
+        return 'WDI Annual Indicators Pipeline'
 
     @staticmethod
     def description():
-        return 'Processes WDI countries data'
+        return 'Processes WDI annual indicators data'
 
     @staticmethod
     def website():
@@ -57,23 +62,17 @@ class DimWDICountriesPipeline(BasePipeline):
         db_connector = Connector.fetch(params.get("db_connector"), open("etl/conns.yaml"))
 
         dtype = {
-            'country_code':      'String',
-            'short_name':        'String',
-            'table_name':        'String',
-            'long_name':         'String',
-            'two_alpha_code':    'String',
-            'currency_unit':     'String',
-            'special_notes':     'String',
-            'region':            'String',
-            'income_group':      'String',
-            'wb_2_code':         'String'
+            'geo_id':                  'String',
+            'indicator_id':            'String',
+            'year':                    'UInt32',
+            'mea':                     'Float64'
         }
 
         download_data = DownloadStep(connector=source_connector)
         extract_step = ExtractStep()
         load_step = LoadStep(
-            "dim_shared_wdi_countries", db_connector, if_exists="append", dtype=dtype,
-            pk=['country_code']
+            "indicators_i_wdi_a", db_connector, if_exists="append", dtype=dtype,
+            pk=['geo_id'], nullable_list=['mea']
         )
 
         pp = AdvancedPipelineExecutor(params)
@@ -83,8 +82,8 @@ class DimWDICountriesPipeline(BasePipeline):
 
 
 if __name__ == '__main__':
-    pipeline = DimWDICountriesPipeline()
+    pipeline = WDIAnnualIndicatorsPipeline()
     pipeline.run({
-        'source_connector': 'wdi-country',
+        'source_connector': 'wdi-data',
         'db_connector': 'clickhouse-remote',
     })
